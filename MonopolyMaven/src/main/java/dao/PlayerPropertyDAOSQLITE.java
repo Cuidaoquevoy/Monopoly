@@ -16,7 +16,7 @@ public class PlayerPropertyDAOSQLITE implements PlayerPropertyDAO {
 
 	@Override
 	public void addPlayerProperty(PlayerProperty playerProperty) {
-		String sql = "INSERT INTO Player_Property(player_id, property_id, game_id) VALUES (?, ?, ?)";
+		String sql = "INSERT OR IGNORE INTO Player_Property(player_id, property_id, game_id) VALUES (?, ?, ?)";
 		Connection conn = null;
 		PreparedStatement statement = null;
 

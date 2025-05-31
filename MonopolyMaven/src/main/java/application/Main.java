@@ -24,3 +24,11 @@ public class Main extends Application {
 		launch(args);
 	}
 }
+
+//Arreglar porqué peta
+//Mostrar por pantalla las propiedades y cartas del jugador que tiene el turno
+//Guardar y continuar las partidas.
+
+//No permitir jugar con menos de 2 personas.
+//Hacer que en la tirada para escoger turno los dados se mantengan en el centro de la pantalla
+// Al comprar una propiedad no se resta el dinero total. Poner talvez algun random entre 50 y 200

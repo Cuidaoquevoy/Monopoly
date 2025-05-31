@@ -38,23 +38,25 @@ public class PlayerDAOSQLITE implements PlayerDAO {
 			statement.setInt(6, player.getJailTurnsLeft());
 			statement.executeUpdate();
 
-			DAOManager daoManager = new DAOManager();
-			PlayerCardDAO cardDAO = daoManager.getPlayerCardDAO();
-			PlayerPropertyDAO propertyDAO = daoManager.getPlayerPropertyDAO();
-
-			for (Card card : player.getCards()) {
-				cardDAO.addPlayerCard(
-						new PlayerCard(player.getIdPlayer(), card.getIdCard(), player.getGame().getIdGame()));
-			}
-
-			for (Property property : player.getProperties()) {
-				propertyDAO.addPlayerProperty(new PlayerProperty(player.getIdPlayer(), property.getIdProperty(),
-						player.getGame().getIdGame()));
-			}
-
 			ResultSet resultSet = statement.getGeneratedKeys();
 			if (resultSet.next()) {
 				int id = resultSet.getInt(1);
+				player.setIdPlayer(id); // 🧠 IMPORTANTE: actualizas el ID en el objeto
+
+				// 🔁 Ahora sí puedes añadir cartas y propiedades
+				DAOManager daoManager = new DAOManager();
+				PlayerCardDAO cardDAO = daoManager.getPlayerCardDAO();
+				PlayerPropertyDAO propertyDAO = daoManager.getPlayerPropertyDAO();
+
+				for (Card card : player.getCards()) {
+					cardDAO.addPlayerCard(new PlayerCard(id, card.getIdCard(), player.getGame().getIdGame()));
+				}
+
+				for (Property property : player.getProperties()) {
+					propertyDAO.addPlayerProperty(
+							new PlayerProperty(id, property.getIdProperty(), player.getGame().getIdGame()));
+				}
+
 				return id;
 			}
 

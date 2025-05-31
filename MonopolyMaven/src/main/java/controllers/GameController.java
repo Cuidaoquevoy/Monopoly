@@ -264,6 +264,7 @@ public class GameController {
 			Player player = new Player();
 
 			player.setProfile(selectedProfiles.get(i));
+
 			for (Cell cell : cells) {
 				if (cell.getType() == Cell.CellType.START) {
 					player.setCell(cell);
@@ -453,6 +454,7 @@ public class GameController {
 	/**
 	 * @author Ana
 	 */
+	// TODO TOCAR ESTE MÉTODO CREO
 	public void rollDice() {
 		Random random = new Random();
 		Thread thread = new Thread() {
@@ -780,11 +782,16 @@ public class GameController {
 				actualPlayer.setJailTurnsLeft(0);
 				System.out.println("El jugador " + actualPlayer.getProfile().getNickname()
 						+ " ha sacado dobles y sale de la cárcel.");
+
 			} else {
 				System.out.println("El jugador " + actualPlayer.getProfile().getNickname()
 						+ " no ha sacado dobles y sigue en la cárcel.");
 				actualPlayer.setJailTurnsLeft(actualPlayer.getJailTurnsLeft() - 1);
-
+				turnIndex++;
+				if (turnIndex >= orderTurn.size()) {
+					turnIndex = 0;
+				}
+				startTurn();
 			}
 			return;
 		} else {
@@ -823,6 +830,9 @@ public class GameController {
 				break;
 			case TAX:
 				handleTaxCell(newCell, actualPlayer);
+				break;
+			case PARKING:
+				System.out.println("El jugador ha caído en el parking. Turno sin acción.");
 				break;
 			default:
 				break;
@@ -1353,7 +1363,7 @@ public class GameController {
 			newCell = cellDAO.findCellById(nextCellNumber);
 			player.setCell(newCell);
 			break;
-		case "SUM_DICE":
+		case "SUM_CELL":
 			actualCell = actualPlayer.getCell();
 			actualCellNumber = actualCell.getIdCell();
 			nextCellNumber = (actualCellNumber + value) % TOTAL_NUM_CELLS;
