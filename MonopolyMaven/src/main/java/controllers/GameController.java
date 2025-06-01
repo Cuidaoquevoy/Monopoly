@@ -1254,48 +1254,46 @@ public class GameController {
 	 * @author Ana
 	 */
 	public int cobrarAlquiler(Property property, Player owner, Player renter) {
-		lblAction.setText("Has caído en una celda de propiedad. El dueño es: " + owner.getProfile().getNickname()
-				+ ". Se cobrará el alquiler correspondiente.");
-		lblAction.setPrefWidth(169);
-		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
-		lblAction.setWrapText(true);
+	    if (owner == null || renter == null || property == null) {
+	        System.err.println("Invalid parameters: owner=" + owner + ", renter=" + renter + ", property=" + property);
+	        lblAction.setText("Error: Datos no válidos.");
+	        return 0;
+	    }
 
-		System.out.println("Cobrando alquiler...");
-		int rent = 0;
-		if (property.getHouseNumber() == 0 || property.getHotelNumber() == 0) {
-			rent = property.getRentBaseValue();
-		} else if (property.getHouseNumber() > 0) {
-			List<RentHouseValue> rents = null;
-			switch (property.getHouseNumber()) {
-			case 1:
-				rents = property.getRentHouseValue();
-				rent = rents.get(0).getRentValue();
-				break;
+	    String ownerNickname = (owner.getProfile() != null) ? owner.getProfile().getNickname() : "Desconocido";
+	    
+	    lblAction.setText("Has caído en una celda de propiedad. El dueño es: " + ownerNickname
+	            + ". Se cobrará el alquiler correspondiente.");
+	    lblAction.setPrefWidth(169);
+	    lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
+	    lblAction.setWrapText(true);
 
-			case 2:
-				rents = property.getRentHouseValue();
-				rent = rents.get(1).getRentValue();
-				break;
-			case 3:
-				rents = property.getRentHouseValue();
-				rent = rents.get(2).getRentValue();
-				break;
-			default:
-				break;
-			}
-		} else if (property.getHotelNumber() == 1) {
-			rent = property.getRentHotelValue();
-		}
-		if (checkIfPlayerCanPurchase(renter.getMoney(), rent)) {
-			int substractedMoney = renter.getMoney() - rent;
-			renter.setMoney(substractedMoney);
-			int addedMoney = owner.getMoney() + rent;
-			owner.setMoney(addedMoney);
-		} else {
-			renter.setBankrupt(true);
-			System.out.println("El jugador " + renter.getProfile().getNickname() + " está en bancarrota.");
-		}
-		return rent;
+	    System.out.println("Cobrando alquiler...");
+	    int rent = 0;
+	    if (property.getHouseNumber() == 0 && property.getHotelNumber() == 0) {
+	        rent = property.getRentBaseValue();
+	    } else if (property.getHouseNumber() > 0) {
+	        List<RentHouseValue> rents = property.getRentHouseValue();
+	        if (rents != null && property.getHouseNumber() <= rents.size()) {
+	            rent = rents.get(property.getHouseNumber() - 1).getRentValue();
+	        } else {
+	            System.err.println("Invalid rent data for property: " + property);
+	        }
+	    } else if (property.getHotelNumber() == 1) {
+	        rent = property.getRentHotelValue();
+	    }
+
+	    if (checkIfPlayerCanPurchase(renter.getMoney(), rent)) {
+	        int substractedMoney = renter.getMoney() - rent;
+	        renter.setMoney(substractedMoney);
+	        int addedMoney = owner.getMoney() + rent;
+	        owner.setMoney(addedMoney);
+	    } else {
+	        renter.setBankrupt(true);
+	        String renterNickname = (renter.getProfile() != null) ? renter.getProfile().getNickname() : "Desconocido";
+	        System.out.println("El jugador " + renterNickname + " está en bancarrota.");
+	    }
+	    return rent;
 	}
 
 	/**
@@ -1350,6 +1348,11 @@ public class GameController {
 			mostrarPanelTurnoJugador(player.getProfile());
 			break;
 		case "GO_BACK_CELLS":
+			if (actualPlayer == null) {
+		        System.err.println("Error: actualPlayer is null in executeAction");
+		        lblAction.setText("Error: No hay jugador actual.");
+		        return;
+		    }
 			Cell actualCell = actualPlayer.getCell();
 			int actualCellNumber = actualCell.getIdCell();
 			int nextCellNumber = (actualCellNumber - value) % TOTAL_NUM_CELLS;
@@ -1357,6 +1360,11 @@ public class GameController {
 			player.setCell(newCell);
 			break;
 		case "MOVE_CELLS":
+			if (actualPlayer == null) {
+		        System.err.println("Error: actualPlayer is null in executeAction");
+		        lblAction.setText("Error: No hay jugador actual.");
+		        return;
+		    }
 			actualCell = actualPlayer.getCell();
 			actualCellNumber = actualCell.getIdCell();
 			nextCellNumber = (actualCellNumber + value) % TOTAL_NUM_CELLS;
@@ -1364,6 +1372,11 @@ public class GameController {
 			player.setCell(newCell);
 			break;
 		case "SUM_CELL":
+			if (actualPlayer == null) {
+		        System.err.println("Error: actualPlayer is null in executeAction");
+		        lblAction.setText("Error: No hay jugador actual.");
+		        return;
+		    }
 			actualCell = actualPlayer.getCell();
 			actualCellNumber = actualCell.getIdCell();
 			nextCellNumber = (actualCellNumber + value) % TOTAL_NUM_CELLS;
@@ -1572,7 +1585,7 @@ public class GameController {
 		lblAction.setWrapText(true);
 
 		System.out.println("Manejando celda de cofre comunitario...");
-		Card chestCard = getRandomCard(CardType.LUCK);
+		Card chestCard = getRandomCard(CardType.COMMUNITY_CHEST);
 		System.out.println("Carta de cofre obtenida: " + chestCard.getIdCard());
 		List<Card> cards = player.getCards();
 		cards.add(chestCard);

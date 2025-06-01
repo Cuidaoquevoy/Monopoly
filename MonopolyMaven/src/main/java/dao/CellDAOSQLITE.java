@@ -71,6 +71,8 @@ public class CellDAOSQLITE implements CellDAO {
 				Property property = propertyDAO.findPropertyById(propertyId);
 
 				return new Cell(cellId, CellType.valueOf(typeString), card, property);
+			} else {
+			    System.err.println("❌ No se encontró ninguna celda con id_cell = " + id);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

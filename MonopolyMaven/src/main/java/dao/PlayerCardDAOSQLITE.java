@@ -16,7 +16,7 @@ public class PlayerCardDAOSQLITE implements PlayerCardDAO {
 
 	@Override
 	public void addPlayerCard(PlayerCard playerCard) {
-		String sql = "INSERT INTO Player_Card(player_id, card_id, game_id) VALUES (?, ?, ?)";
+		String sql = "INSERT OR IGNORE INTO Player_Card(player_id, card_id, game_id) VALUES (?, ?, ?)";
 		Connection conn = null;
 		PreparedStatement statement = null;
 
