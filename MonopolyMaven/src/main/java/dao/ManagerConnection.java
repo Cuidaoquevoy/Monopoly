@@ -11,7 +11,7 @@ import table.queries.TableInserts;
 import table.queries.TableQueries;
 
 /**
- * @author Ana
+ * @author Víctor
  */
 public class ManagerConnection {
 
@@ -34,6 +34,7 @@ public class ManagerConnection {
 
 			connexio = DriverManager.getConnection("jdbc:sqlite:" + dbFolder);
 			createTables(connexio);
+			migrateExistingDB(connexio);
 			insertDefaultData(connexio);
 			return 0;
 		} catch (SQLException e) {
@@ -86,6 +87,56 @@ public class ManagerConnection {
 			smt.execute(TableQueries.SQL_PLAYER_CARD);
 			smt.execute(TableQueries.SQL_PLAYER_PROPERTY);
 			smt.execute(TableQueries.SQL_RENT_HOUSE_VALUE);
+			smt.execute(TableQueries.SQL_TURN_ORDER); // ← línea añadida
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void migrateExistingDB(Connection conn) {
+		// Migración: añadir columna name a Game si no existe
+		try (java.sql.Statement smt = conn.createStatement()) {
+			smt.execute("ALTER TABLE Game ADD COLUMN name TEXT;");
+			System.out.println("[MIGRATION] Columna 'name' añadida a Game.");
+		} catch (Exception ignored) {
+		}
+
+		// Migración: añadir columna name a Property si no existe
+		try (java.sql.Statement smt = conn.createStatement()) {
+			smt.execute("ALTER TABLE Property ADD COLUMN name TEXT;");
+			System.out.println("[MIGRATION] Columna 'name' añadida a Property.");
+		} catch (Exception ignored) {
+		}
+
+		// Migración: insertar cartas de cofre si faltan (bug original: se comprobaba
+		// COUNT dos veces)
+		try (java.sql.Statement smt = conn.createStatement()) {
+			java.sql.ResultSet rs = smt
+					.executeQuery("SELECT COUNT(*) AS total FROM Card WHERE type = 'COMMUNITY_CHEST';");
+			rs.next();
+			if (rs.getInt("total") == 0) {
+				java.sql.Statement ins = conn.createStatement();
+				for (String sql : table.queries.TableInserts.INSERT_CARDS_COMMUNITY_CHEST) {
+					ins.executeUpdate(sql);
+				}
+				System.out.println("[MIGRATION] Cartas de cofre insertadas.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Migración: rellenar nombres de propiedades si están vacíos
+		try (java.sql.Statement smt = conn.createStatement()) {
+			java.sql.ResultSet rs = smt
+					.executeQuery("SELECT COUNT(*) AS total FROM Property WHERE name IS NOT NULL AND name != '';");
+			rs.next();
+			if (rs.getInt("total") == 0) {
+				java.sql.Statement upd = conn.createStatement();
+				for (String sql : table.queries.TableInserts.MIGRATE_PROPERTY_NAMES) {
+					upd.executeUpdate(sql);
+				}
+				System.out.println("[MIGRATION] Nombres de propiedades actualizados.");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -247,4 +247,33 @@ public class TableInserts {
 			"INSERT INTO Rent_House_Value (property_id, house_count, rent_value) VALUES(26, 1, 50);",
 			"INSERT INTO Rent_House_Value (property_id, house_count, rent_value) VALUES(26, 2, 100);",
 			"INSERT INTO Rent_House_Value (property_id, house_count, rent_value) VALUES(26, 3, 200);", };
+
+	// UPDATEs para BDs ya existentes que no tienen nombre en Property
+	public static final String[] MIGRATE_PROPERTY_NAMES = {
+			"UPDATE Property SET name = 'Rigby'                            WHERE id_property = 1;",
+			"UPDATE Property SET name = 'Se\u00f1or Brown'               WHERE id_property = 2;",
+			"UPDATE Property SET name = 'Samurai Jack'                     WHERE id_property = 3;",
+			"UPDATE Property SET name = 'Perla'                            WHERE id_property = 4;",
+			"UPDATE Property SET name = 'Gumball'                          WHERE id_property = 5;",
+			"UPDATE Property SET name = 'Chowder'                          WHERE id_property = 6;",
+			"UPDATE Property SET name = 'Steven'                           WHERE id_property = 7;",
+			"UPDATE Property SET name = 'Agallas'                          WHERE id_property = 8;",
+			"UPDATE Property SET name = 'Darwin'                           WHERE id_property = 9;",
+			"UPDATE Property SET name = 'Comadreja'                        WHERE id_property = 10;",
+			"UPDATE Property SET name = 'Dexter'                           WHERE id_property = 11;",
+			"UPDATE Property SET name = 'Aku'                              WHERE id_property = 12;",
+			"UPDATE Property SET name = 'Red Guy'                          WHERE id_property = 13;",
+			"UPDATE Property SET name = 'Cuatrobrazos'                     WHERE id_property = 14;",
+			"UPDATE Property SET name = 'Johnny Bravo'                     WHERE id_property = 15;",
+			"UPDATE Property SET name = 'Muriel'                           WHERE id_property = 16;",
+			"UPDATE Property SET name = 'Mandy'                            WHERE id_property = 17;",
+			"UPDATE Property SET name = 'Cactus'                           WHERE id_property = 18;",
+			"UPDATE Property SET name = 'Ben 10'                           WHERE id_property = 19;",
+			"UPDATE Property SET name = 'Ed'                               WHERE id_property = 20;",
+			"UPDATE Property SET name = 'Mordecai'                         WHERE id_property = 21;",
+			"UPDATE Property SET name = 'Finn'                             WHERE id_property = 22;",
+			"UPDATE Property SET name = 'Furgoneta del Tio Ben'            WHERE id_property = 23;",
+			"UPDATE Property SET name = 'Furgoneta de Ed, Edd y Eddie'     WHERE id_property = 24;",
+			"UPDATE Property SET name = 'Carrito de Golf Mordecai y Rigby' WHERE id_property = 25;",
+			"UPDATE Property SET name = 'Portal de Samurai Jack'           WHERE id_property = 26;" };
 }

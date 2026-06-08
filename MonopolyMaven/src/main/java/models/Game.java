@@ -6,12 +6,13 @@ package models;
 public class Game {
 
 	public enum State {
-		IN_GAME, FINISHED, PAUSED
+		IN_GAME, FINISHED, PAUSED, SAVED
 	}
 
 	public int idGame;
 	public State state;
 	public String duration;
+	public String name;
 
 	public Game(int idGame, State state, String duration) {
 		super();
@@ -46,6 +47,14 @@ public class Game {
 
 	public void setDuration(String duration) {
 		this.duration = duration;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public boolean isGameOver() {

@@ -19,7 +19,7 @@ public class GameDAOSQLITE implements GameDAO {
 
 	@Override
 	public int addGame(Game game) {
-		String sql = "INSERT INTO Game(state, duration) VALUES (?, ?)";
+		String sql = "INSERT INTO Game(state, duration, name) VALUES (?, ?, ?)";
 		Connection conn = null;
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
@@ -29,6 +29,7 @@ public class GameDAOSQLITE implements GameDAO {
 			statement = conn.prepareStatement(sql, statement.RETURN_GENERATED_KEYS);
 			statement.setString(1, game.getState().name());
 			statement.setString(2, game.getDuration());
+			statement.setString(3, game.getName());
 			statement.executeUpdate();
 
 			resultSet = statement.getGeneratedKeys();
@@ -70,7 +71,10 @@ public class GameDAOSQLITE implements GameDAO {
 				int gameId = resultSet.getInt("id_game");
 				String typeString = resultSet.getString("state");
 				String duration = resultSet.getString("duration");
-				return new Game(gameId, State.valueOf(typeString), duration);
+				String name = resultSet.getString("name");
+				Game game = new Game(gameId, State.valueOf(typeString), duration);
+				game.setName(name);
+				return game;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -91,7 +95,7 @@ public class GameDAOSQLITE implements GameDAO {
 
 	@Override
 	public void updateGame(Game game) {
-		String sql = "UPDATE Game SET state = ?, duration = ? WHERE id_game = ?";
+		String sql = "UPDATE Game SET state = ?, duration = ?, name = ? WHERE id_game = ?";
 		Connection conn = null;
 		PreparedStatement statement = null;
 
@@ -100,7 +104,8 @@ public class GameDAOSQLITE implements GameDAO {
 			statement = conn.prepareStatement(sql);
 			statement.setString(1, game.getState().name());
 			statement.setString(2, game.getDuration());
-			statement.setInt(3, game.getIdGame());
+			statement.setString(3, game.getName());
+			statement.setInt(4, game.getIdGame());
 			statement.executeUpdate();
 
 		} catch (SQLException e) {
@@ -143,8 +148,8 @@ public class GameDAOSQLITE implements GameDAO {
 
 	@Override
 	public List<Game> getAll() {
-		List<Game> games = new ArrayList<Game>();
-		String sql = "SELECT * FROM Card";
+		List<Game> games = new ArrayList<>();
+		String sql = "SELECT * FROM Game"; // Cambié Card por Game
 		Connection conn = null;
 		Statement statement = null;
 		ResultSet resultSet = null;
@@ -156,10 +161,12 @@ public class GameDAOSQLITE implements GameDAO {
 
 			while (resultSet.next()) {
 				int gameId = resultSet.getInt("id_game");
-				String typeString = resultSet.getString("type");
+				String stateString = resultSet.getString("state");
 				String duration = resultSet.getString("duration");
+				String name = resultSet.getString("name");
 
-				Game game = new Game(gameId, State.valueOf(typeString), duration);
+				Game game = new Game(gameId, State.valueOf(stateString), duration);
+				game.setName(name);
 				games.add(game);
 			}
 
@@ -181,12 +188,15 @@ public class GameDAOSQLITE implements GameDAO {
 	}
 
 	@Override
+	public List<Player> loadPlayers(int gameId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public List<Player> loadPlayers() {
-		// Implementación de ejemplo: reemplaza con la lógica real de la base de datos
-		List<Player> players = new ArrayList<>();
-		// Agrega lógica para obtener jugadores desde la base de datos
-		System.out.println("Cargando jugadores desde la base de datos...");
-		return players;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

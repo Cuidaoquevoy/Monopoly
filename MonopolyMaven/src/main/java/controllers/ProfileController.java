@@ -49,7 +49,6 @@ public class ProfileController {
 	@FXML
 	private ScrollPane scrollPane;
 
-	static Scene previousScene;
 	private Profile selectedProfile;
 	private String selectedImagePath;
 	private DAOManager daoManager = new DAOManager();
@@ -57,6 +56,7 @@ public class ProfileController {
 
 	@FXML
 	private void initialize() {
+		// Al crear un perfil nuevo: todo editable desde el principio
 		tfNickname.setEditable(true);
 		btnEditNickname.setVisible(false);
 		btnEditProfilePhoto.setVisible(false);
@@ -65,38 +65,45 @@ public class ProfileController {
 		setImagePane();
 	}
 
-	@FXML
-	public void goBack(ActionEvent event) {
-		try {
-			// Carga la nueva vista
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ListProfilesView.fxml"));
-			Parent mainViewRoot = loader.load();
+	/**
+	 * Llamado desde ListProfilesController cuando se abre un perfil existente.
+	 */
+	public void setProfile(Profile profile) {
+		this.selectedProfile = profile;
 
-			Scene mainViewScene = new Scene(mainViewRoot);
-			Stage stage = (Stage) btnGoBack.getScene().getWindow();
+		if (profile != null) {
+			// Modo edición: nickname no editable hasta pulsar "Editar"
+			tfNickname.setEditable(false);
+			tfNickname.setText(profile.getNickname());
 
-			stage.setScene(mainViewScene);
-			stage.show();
+			btnEditNickname.setVisible(true);
+			btnEditProfilePhoto.setVisible(true);
 
-		} catch (IOException e) {
-			e.printStackTrace();
-			Alert alert = new Alert(Alert.AlertType.ERROR);
-			alert.setTitle("Load Error");
-			alert.setHeaderText("Could not load Main View");
-			alert.setContentText("An error occurred while trying to load the main view.");
-			alert.showAndWait();
+			// Mostrar foto actual
+			if (profile.getImage() != null && !profile.getImage().isEmpty()) {
+				imgProfilePhoto.setImage(new Image(profile.getImage(), true));
+				selectedImagePath = profile.getImage(); // importante: inicializar con la imagen actual
+			}
+
+			// Ocultar el panel de fotos hasta que pulse "Editar foto"
+			scrollPane.setVisible(false);
+			profilePhotosPane.setVisible(false);
 		}
 	}
 
 	@FXML
 	void editName(ActionEvent event) {
 		tfNickname.setEditable(true);
+		tfNickname.requestFocus();
+		tfNickname.selectAll();
 	}
 
 	@FXML
 	void editPhoto(ActionEvent event) {
 		scrollPane.setVisible(true);
 		profilePhotosPane.setVisible(true);
+		// Limpiar el panel y recargar las imágenes disponibles
+		profilePhotosPane.getChildren().clear();
 		setImagePane();
 	}
 
@@ -112,6 +119,9 @@ public class ProfileController {
 			imageView.setOnMouseClicked(e -> {
 				imgProfilePhoto.setImage(image);
 				selectedImagePath = imagePath;
+				// Cerrar el panel de selección tras elegir foto
+				scrollPane.setVisible(false);
+				profilePhotosPane.setVisible(false);
 			});
 
 			profilePhotosPane.getChildren().add(imageView);
@@ -120,31 +130,70 @@ public class ProfileController {
 
 	@FXML
 	void saveProfile(ActionEvent event) {
-		if (selectedProfile != null) {
-			String nickname = tfNickname.getText();
-			Profile profile = new Profile(nickname, selectedImagePath);
-			profileDAO.updateProfile(profile);
-			System.out.println("Creado perfil" + profile.toString());
-		} else {
-			String nickname = tfNickname.getText();
-			Profile profile = new Profile(nickname, selectedImagePath);
-			profileDAO.addProfile(profile);
-			System.out.println("Creado perfil" + profile.getNickname());
+		String nickname = tfNickname.getText().trim();
+
+		if (nickname.isEmpty()) {
+			Alert alert = new Alert(Alert.AlertType.WARNING);
+			alert.setTitle("Nickname vacío");
+			alert.setHeaderText("El nickname no puede estar vacío");
+			alert.setContentText("Por favor escribe un nombre para el perfil.");
+			alert.showAndWait();
+			return;
 		}
 
-	}
-
-	public void setProfile(Profile selectedProfile) {
-		this.selectedProfile = selectedProfile;
+		if (selectedImagePath == null || selectedImagePath.isEmpty()) {
+			Alert alert = new Alert(Alert.AlertType.WARNING);
+			alert.setTitle("Sin imagen");
+			alert.setHeaderText("No has seleccionado ninguna imagen");
+			alert.setContentText("Por favor selecciona una foto de perfil.");
+			alert.showAndWait();
+			return;
+		}
 
 		if (selectedProfile != null) {
-			tfNickname.setEditable(false);
-			btnEditNickname.setVisible(true);
-			btnEditProfilePhoto.setVisible(true);
-			tfNickname.setText(selectedProfile.getNickname());
-			imgProfilePhoto.setImage(new Image(selectedProfile.getImage(), true));
-			scrollPane.setVisible(false);
-			profilePhotosPane.setVisible(false);
+			// EDITAR perfil existente: actualizamos los campos del objeto y llamamos update
+			selectedProfile.setNickname(nickname);
+			selectedProfile.setImage(selectedImagePath);
+			profileDAO.updateProfile(selectedProfile);
+			System.out.println("[DEBUG] Perfil actualizado: " + selectedProfile);
+		} else {
+			// CREAR perfil nuevo
+			Profile newProfile = new Profile(nickname, selectedImagePath);
+			profileDAO.addProfile(newProfile);
+			System.out.println("[DEBUG] Perfil creado: " + newProfile.getNickname());
+		}
+
+		// Volver a la lista de perfiles
+		goBackToList();
+	}
+
+	@FXML
+	public void goBack(ActionEvent event) {
+		goBackToList();
+	}
+
+	private void goBackToList() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ListProfilesView.fxml"));
+			Parent mainViewRoot = loader.load();
+
+			ListProfilesController listController = loader.getController();
+			listController.setNewGame(false);
+			listController.configureView();
+
+			Scene mainViewScene = new Scene(mainViewRoot);
+			Stage stage = (Stage) btnGoBack.getScene().getWindow();
+
+			stage.setScene(mainViewScene);
+			stage.show();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setTitle("Load Error");
+			alert.setHeaderText("Could not load Profiles View");
+			alert.setContentText("An error occurred while trying to load the profiles view.");
+			alert.showAndWait();
 		}
 	}
 }

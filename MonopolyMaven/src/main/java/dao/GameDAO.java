@@ -26,6 +26,8 @@ public interface GameDAO {
 	/* Read All */
 	public List<Game> getAll();
 
-	public List<Player> loadPlayers();
+	public List<Player> loadPlayers(int gameId);
+
+	List<Player> loadPlayers();
 
 }

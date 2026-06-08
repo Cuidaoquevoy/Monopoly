@@ -15,7 +15,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.GameController">
    <center>
-      <AnchorPane minHeight="600.0" minWidth="800.0" prefHeight="700.0" prefWidth="1000.0" styleClass="main-background" stylesheets="@../css/Home.css" BorderPane.alignment="CENTER">
+      <AnchorPane  fx:id="mainPane" minHeight="600.0" minWidth="800.0" prefHeight="700.0" prefWidth="1000.0" styleClass="main-background" stylesheets="@../css/Home.css" BorderPane.alignment="CENTER">
          <children>
             <GridPane fx:id="board_game" layoutX="273.0" layoutY="97.0" prefHeight="507.0" prefWidth="518.0" stylesheets="@../css/Home.css">
               <columnConstraints>

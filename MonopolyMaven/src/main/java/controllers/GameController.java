@@ -84,30 +84,24 @@ public class GameController {
 	private Button exitButton;
 	@FXML
 	private GridPane board_game;
-
 	@FXML
 	private Text lblPlayerName;
-
 	@FXML
 	private ImageView imgPlayerPhoto;
-
 	@FXML
 	private VBox playerOrderContainer;
-
 	@FXML
 	private Label lblAction;
-
 	@FXML
 	private ImageView imageDiceFirst;
-
 	@FXML
 	private ImageView imageDiceSecond;
-
 	@FXML
 	private Button rollDice;
-
 	@FXML
 	private AnchorPane centerPane;
+	@FXML
+	private AnchorPane mainPane;
 
 	// Game
 	private Game actualGame;
@@ -140,32 +134,42 @@ public class GameController {
 	private PlayerCardDAO playerCardDAO = daoManager.getPlayerCardDAO();
 	private PlayerPropertyDAO playerPropertyDAO = daoManager.getPlayerPropertyDAO();
 
-	/* Setters */
+	/* ── Setters ────────────────────────────────────────────────────────────── */
 
-	/**
-	 * @author Ana
-	 */
+	@FXML
+	public void initialize() {
+		Platform.runLater(() -> {
+			try {
+				Stage stage = (Stage) exitButton.getScene().getWindow();
+				stage.setOnCloseRequest(event -> {
+					if (actualGame != null) {
+						guardarPartida();
+					}
+				});
+			} catch (Exception e) {
+				// Stage aún no disponible, se ignorará
+			}
+		});
+	}
+
+	/** @author Ana */
 	public void setSelectedToken(String path) {
 		this.selectedTokens.add(path);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void setProfiles(List<Profile> selectedProfiles) {
 		this.selectedProfiles = selectedProfiles;
 		if (selectedProfiles == null || selectedProfiles.isEmpty()) {
 			System.out.println("Error: Los perfiles no se han cargado en el GameController.");
 			return;
-		} else {
-			initGame();
 		}
+		initGame();
 	}
 
-	/* Inits */
-	/**
-	 * @author Ana
-	 */
+	/* ── Inits ──────────────────────────────────────────────────────────────── */
+
+	/** @author Ana */
 	private void initGame() {
 		if (selectedProfiles == null || selectedProfiles.isEmpty()) {
 			System.out.println("Error: Los perfiles no se han cargado en el GameController.");
@@ -176,22 +180,16 @@ public class GameController {
 			}
 		}
 
-		// Creamos el juego
 		actualGame = new Game();
 		actualGame.setDuration("60");
 		actualGame.setState(State.IN_GAME);
 
-		// Creamos el juego en la base de datos
 		int idGame = gameDAO.addGame(actualGame);
 		actualGame.setIdGame(idGame);
 
-		// Creamos las celdas
 		cells = cellDAO.getAll();
-
-		// Cremos el tablero
 		initBoard();
 
-		// Iniciar selección de tokens uno a uno
 		selectedTokens.clear();
 		for (int i = 0; i < selectedProfiles.size(); i++) {
 			seleccionarFichaJugador();
@@ -202,35 +200,28 @@ public class GameController {
 				BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
 				new BackgroundSize(100, 100, true, true, true, false));
 		board_game.setBackground(new Background(backgroundImage));
-
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void initBoard() {
 		// Fila inferior (derecha a izquierda)
 		for (int col = 10; col >= 0; col--) {
 			borde.add(new Point2D(10, col));
 		}
-
 		// Columna izquierda (de abajo hacia arriba, sin esquinas)
 		for (int row = 9; row >= 1; row--) {
 			borde.add(new Point2D(row, 0));
 		}
-
 		// Fila superior (izquierda a derecha)
 		for (int col = 0; col <= 10; col++) {
 			borde.add(new Point2D(0, col));
 		}
-
 		// Columna derecha (de arriba hacia abajo, sin esquinas)
 		for (int row = 1; row <= 9; row++) {
 			borde.add(new Point2D(row, 10));
 		}
 
 		mapaCeldaPorCoordenada = new HashMap<>();
-
 		for (int i = 0; i < borde.size(); i++) {
 			mapaCeldaPorCoordenada.put(borde.get(i), cells.get(i));
 		}
@@ -256,24 +247,13 @@ public class GameController {
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void initPlayers() {
 		for (int i = 0; i < selectedProfiles.size(); i++) {
 			Player player = new Player();
-
 			player.setProfile(selectedProfiles.get(i));
 
-			for (Cell cell : cells) {
-				if (cell.getType() == Cell.CellType.START) {
-					player.setCell(cell);
-					break;
-				}
-			}
-
-			Cell startCell = cellDAO.findCellById(1);
-
+			Cell startCell = cellDAO.findCellById(0);
 			player.setMoney(1500);
 			player.setCards(new ArrayList<Card>());
 			player.setProperties(new ArrayList<Property>());
@@ -282,12 +262,12 @@ public class GameController {
 			player.setJailTurnsLeft(0);
 			player.setCell(startCell);
 			player.setToken(selectedTokens.get(i));
+
 			ImageView ficha = new ImageView(new Image(player.getToken()));
 			ficha.setFitWidth(20);
 			ficha.setFitHeight(20);
 			player.setImgToken(ficha);
 
-			// Creamos el jugador en la base de datos
 			int idPlayer = playerDAO.addPlayer(player);
 			player.setIdPlayer(idPlayer);
 
@@ -296,9 +276,7 @@ public class GameController {
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void seleccionarFichaJugador() {
 		lblAction.setText(
 				"Selecciona una ficha para el jugador: " + selectedProfiles.get(currentProfileIndex).getNickname());
@@ -317,6 +295,7 @@ public class GameController {
 		TilePane tilePane = new TilePane();
 		tilePane.setPrefColumns(4);
 		tilePane.setPrefRows(2);
+
 		for (String imagePath : TOKENS_IMAGES) {
 			Image image = new Image(imagePath, true);
 			ImageView imageView = new ImageView(image);
@@ -333,7 +312,6 @@ public class GameController {
 				if (currentProfileIndex < selectedProfiles.size()) {
 					seleccionarFichaJugador();
 				} else {
-					// todos seleccionaron, ir al juego
 					initPlayers();
 					mostrarPanelOrdenDeTurno();
 				}
@@ -341,71 +319,59 @@ public class GameController {
 
 			tilePane.getChildren().add(imageView);
 		}
+
 		centerPane.getChildren().clear();
 		centerPane.getChildren().add(scrollPane);
 		scrollPane.setContent(tilePane);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void iniciarFichasJugadores() {
-		Cell celdaSalida = cellDAO.findCellById(1);
-		System.out.println("Celda de salida: " + celdaSalida.getIdCell());
+		Cell celdaSalida = cellDAO.findCellById(0);
 		Point2D coordenadas = null;
 
 		for (Map.Entry<Point2D, Cell> entry : mapaCeldaPorCoordenada.entrySet()) {
 			if (entry.getValue().getIdCell() == celdaSalida.getIdCell()) {
 				coordenadas = entry.getKey();
-				System.out.println("Coordenadas de la celda de salida: " + coordenadas);
 				break;
 			}
 		}
 
 		if (coordenadas != null) {
 			HBox hboxFichas = hboxPorCoordenada.get(coordenadas);
-
 			for (Player player : orderTurn) {
 				ImageView ficha = player.getImgToken();
-
 				Parent anterior = ficha.getParent();
 				if (anterior instanceof Pane) {
 					((Pane) anterior).getChildren().remove(ficha);
 				}
-
 				hboxFichas.getChildren().add(ficha);
 			}
 		}
 	}
 
-	/* Juego */
-	/**
-	 * @author Ana
-	 */
+	/* ── Juego ──────────────────────────────────────────────────────────────── */
+
+	/** @author Ana */
 	public void startGame() {
 		turnIndex = 0;
 		iniciarFichasJugadores();
 		startTurn();
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void startTurn() {
 		Player currentPlayer = orderTurn.get(turnIndex);
 		mostrarPanelTurnoJugador(currentPlayer.getProfile());
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void avanzarTurnoLanzamiento() {
 		if (currentProfileIndex >= selectedProfiles.size()) {
 			if (faseInicial) {
 				System.out.println("Todos los jugadores han lanzado los dados para determinar el orden.");
 				determinarOrdenTurno();
 			} else {
-				// Pasar al siguiente jugador
 				currentProfileIndex = 0;
 			}
 			return;
@@ -416,12 +382,48 @@ public class GameController {
 		imgPlayerPhoto.setImage(new Image(jugador.getImage()));
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void determinarOrdenTurno() {
 		List<Profile> ordenFinal = selectedProfiles.stream().filter(p -> tiradasPorJugador.containsKey(p))
-				.sorted(Comparator.comparingInt(p -> tiradasPorJugador.get(p)).reversed()).collect(Collectors.toList());
+				.sorted(Comparator.comparingInt((Profile p) -> tiradasPorJugador.get(p)).reversed())
+				.collect(Collectors.toList());
+
+		// Detectar empates entre los jugadores con la puntuación más alta
+		int maxPuntuacion = tiradasPorJugador.get(ordenFinal.get(0));
+		List<Profile> empatados = ordenFinal.stream().filter(p -> tiradasPorJugador.get(p) == maxPuntuacion)
+				.collect(Collectors.toList());
+
+		if (empatados.size() > 1) {
+			// Hay empate — avisar y repetir solo para los empatados
+			String nombresEmpatados = empatados.stream().map(Profile::getNickname).collect(Collectors.joining(" y "));
+			lblAction.setText("\u00a1Empate entre " + nombresEmpatados + " con " + maxPuntuacion
+					+ " puntos!\nVolver\u00e1n a lanzar los dados.");
+			lblAction.setPrefWidth(169);
+			lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
+			lblAction.setWrapText(true);
+
+			new Thread(() -> {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
+				}
+				Platform.runLater(() -> {
+					// Reiniciar solo con los jugadores empatados
+					List<Profile> anteriores = new java.util.ArrayList<>(selectedProfiles);
+					selectedProfiles.clear();
+					selectedProfiles.addAll(empatados);
+					tiradasPorJugador.clear();
+					currentProfileIndex = 0;
+					faseInicial = true;
+					mostrarPanelOrdenDeTurno();
+					// Restaurar lista completa para cuando acabe el desempate
+					selectedProfiles.addAll(
+							anteriores.stream().filter(p -> !empatados.contains(p)).collect(Collectors.toList()));
+				});
+			}).start();
+			return;
+		}
 
 		orderTurn.clear();
 		for (Profile p : ordenFinal) {
@@ -448,13 +450,32 @@ public class GameController {
 
 		faseInicial = false;
 		currentProfileIndex = 0;
-		startGame();
+
+		// Mostrar quién empieza durante 3 segundos antes de arrancar
+		String primerJugador = orderTurn.get(0).getProfile().getNickname();
+		lblAction.setText(
+				"\u00a1" + primerJugador + " empieza la partida!\n\nOrden de juego:\n" + buildResultadosTexto());
+		lblAction.setPrefWidth(169);
+		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
+		lblAction.setWrapText(true);
+
+		new Thread(() -> {
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
+			Platform.runLater(() -> startGame());
+		}).start();
 	}
 
+	/* ── Dados ──────────────────────────────────────────────────────────────── */
+
 	/**
-	 * @author Ana
+	 * Lanza los dados con animación y llama al callback con el resultado final.
+	 * 
+	 * @author Víctor
 	 */
-	// TODO TOCAR ESTE MÉTODO CREO
 	public void rollDice() {
 		Random random = new Random();
 		Thread thread = new Thread() {
@@ -462,15 +483,12 @@ public class GameController {
 			public void run() {
 				try {
 					for (int i = 0; i < 15; i++) {
-						// Generamos los números de forma aleatoria del 1 al 6
 						int randomNum1 = random.nextInt(6) + 1;
 						int randomNum2 = random.nextInt(6) + 1;
 
-						// Generamos las rutas de los recursos (ya corregidas)
 						String resourcePathFirst = MessageFormat.format(DICE_IMAGE, randomNum1);
 						String resourcePathSecond = MessageFormat.format(DICE_IMAGE, randomNum2);
 
-						// Cargar las imágenes desde el classpath
 						URL resourceUrlFirst = getClass().getClassLoader().getResource(resourcePathFirst);
 						URL resourceUrlSecond = getClass().getClassLoader().getResource(resourcePathSecond);
 
@@ -490,7 +508,6 @@ public class GameController {
 								dice1 = finalNum1;
 								dice2 = finalNum2;
 
-								// Llamamos al callback con el resultado final de los dados
 								TiradaResultado resultado = new TiradaResultado(dice1, dice2);
 								Platform.runLater(() -> {
 									if (resultadoCallback != null) {
@@ -515,8 +532,16 @@ public class GameController {
 	}
 
 	/**
-	 * @author Ana
+	 * Sobrecarga con callback puntual. Úsala desde mostrarPanelTurnoJugador().
 	 */
+	public void rollDice(Consumer<TiradaResultado> callback) {
+		this.resultadoCallback = callback;
+		rollDice();
+	}
+
+	/* ── Estado del juego ───────────────────────────────────────────────────── */
+
+	/** @author Ana */
 	public boolean isGameFinished() {
 		if (isFinished) {
 			return true;
@@ -528,9 +553,10 @@ public class GameController {
 				activePlayers++;
 			}
 		}
-
 		return activePlayers <= 1;
 	}
+
+	/* ── Salir / Guardar ────────────────────────────────────────────────────── */
 
 	@FXML
 	public void exitGame() {
@@ -548,7 +574,8 @@ public class GameController {
 		alert.showAndWait().ifPresent(response -> {
 			if (response == mainMenuButton) {
 				try {
-					Stage stage = (Stage) this.exitButton.getScene().getWindow();
+					guardarPartida();
+					Stage stage = (Stage) exitButton.getScene().getWindow();
 					double currentWidth = stage.getWidth();
 					double currentHeight = stage.getHeight();
 
@@ -562,30 +589,103 @@ public class GameController {
 					e.printStackTrace();
 				}
 			} else if (response == exitAppButton) {
+				guardarPartida();
 				System.exit(0);
 			}
 		});
 	}
 
-	/* Turnos */
+	/** @author Víctor */
+	private void guardarPartida() {
+		javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("Mi partida");
+		dialog.setTitle("Guardar partida");
+		dialog.setHeaderText("¿Con qué nombre quieres guardar la partida?");
+		dialog.setContentText("Nombre:");
+
+		dialog.showAndWait().ifPresent(nombre -> {
+			try {
+				if (actualGame != null) {
+					actualGame.setState(Game.State.SAVED);
+					actualGame.setName(nombre.trim().isEmpty() ? "Partida #" + actualGame.getIdGame() : nombre.trim());
+					gameDAO.updateGame(actualGame);
+					System.out.println("[DEBUG] Juego guardado: " + actualGame.getName());
+				}
+				for (Player player : allPlayers) {
+					playerDAO.updatePlayer(player);
+				}
+				System.out.println("[DEBUG] Guardado finalizado.");
+			} catch (Exception e) {
+				System.err.println("[ERROR] Error al guardar la partida:");
+				e.printStackTrace();
+			}
+		});
+	}
+
 	/**
-	 * @author Ana
+	 * Carga una partida guardada desde la BD y restaura su estado. Llamado desde
+	 * ListGamesSavedController.
 	 */
+	public void setGame(Game savedGame) {
+		System.out.println("[DEBUG] Cargando partida guardada: ID = " + savedGame.getIdGame());
+		this.actualGame = savedGame;
+
+		allPlayers = playerDAO.getPlayersByGame(savedGame.getIdGame());
+
+		if (allPlayers == null || allPlayers.isEmpty()) {
+			System.out.println("[ERROR] No se encontraron jugadores para la partida " + savedGame.getIdGame());
+			return;
+		}
+
+		selectedProfiles.clear();
+		selectedTokens.clear();
+		for (Player player : allPlayers) {
+			selectedProfiles.add(player.getProfile());
+
+			String token = player.getToken() != null ? player.getToken() : TOKENS_IMAGES[0];
+			player.setToken(token);
+			selectedTokens.add(token);
+
+			ImageView ficha = new ImageView(new Image(token));
+			ficha.setFitWidth(20);
+			ficha.setFitHeight(20);
+			player.setImgToken(ficha);
+		}
+
+		orderTurn = new ArrayList<>(allPlayers);
+
+		cells = cellDAO.getAll();
+		initBoard();
+
+		Image image = new Image(getClass().getResource("/images/board/tablero.png").toExternalForm());
+		BackgroundImage backgroundImage = new BackgroundImage(image, BackgroundRepeat.NO_REPEAT,
+				BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
+				new BackgroundSize(100, 100, true, true, true, false));
+		board_game.setBackground(new Background(backgroundImage));
+
+		playerOrderContainer.getChildren().clear();
+		playerLabels.clear();
+		for (int i = 0; i < orderTurn.size(); i++) {
+			Player player = orderTurn.get(i);
+			String labelText = String.format("Turno %d: %s - %d$", i + 1, player.getProfile().getNickname(),
+					player.getMoney());
+			Label label = new Label(labelText);
+			label.setStyle("-fx-font-size: 14px; -fx-padding: 5 0 5 0;");
+			label.setFont(Font.font("Comic Sans MS", 14));
+			playerOrderContainer.getChildren().add(label);
+			playerLabels.add(label);
+		}
+
+		faseInicial = false;
+		turnIndex = 0;
+		startGame();
+	}
+
+	/* ── Turnos ─────────────────────────────────────────────────────────────── */
+
+	/** @author Ana */
 	private void mostrarPanelOrdenDeTurno() {
-		lblAction.setText("Lanza los dados para determinar el orden de turno. Jugador actual: "
-				+ selectedProfiles.get(0).getNickname());
-		lblAction.setPrefWidth(169);
-		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
-		lblAction.setWrapText(true);
-
-		VBox vbox = new VBox(20);
-		vbox.setAlignment(Pos.CENTER);
-
-		// Jugador actual
-		lblPlayerName.setText(selectedProfiles.get(0).getNickname());
-		imgPlayerPhoto.setImage(new Image(selectedProfiles.get(0).getImage()));
-		imgPlayerPhoto.setFitWidth(55);
-		imgPlayerPhoto.setFitHeight(55);
+		currentProfileIndex = 0;
+		actualizarUIJugadorActual();
 
 		imageDiceFirst = new ImageView();
 		imageDiceFirst.setFitWidth(120);
@@ -603,40 +703,235 @@ public class GameController {
 		lanzarButton.setFont(Font.font("Comic Sans MS", 14));
 		lanzarButton.setLayoutX(129);
 		lanzarButton.setLayoutY(256);
-		currentProfileIndex = 0;
+
 		lanzarButton.setOnAction(e -> {
 			lanzarButton.setDisable(true);
+			// Capturamos el indice actual ANTES de lanzar para evitar race conditions
+			int indiceActual = currentProfileIndex;
+			Profile jugador = selectedProfiles.get(indiceActual);
 
-			// Obtener jugador actual
-			Profile jugador = selectedProfiles.get(currentProfileIndex);
-
-			// Definir el callback para cuando termine de lanzar
 			resultadoCallback = resultado -> {
-				int total = resultado.getDado1() + resultado.getDado2();
+				int dado1 = resultado.getDado1();
+				int dado2 = resultado.getDado2();
+				int total = dado1 + dado2;
+				System.out.println(
+						"[ORDEN] " + jugador.getNickname() + " ha sacado " + dado1 + " + " + dado2 + " = " + total);
+				tiradasPorJugador.put(jugador, total);
+				currentProfileIndex++;
 
-				if (faseInicial) {
-					tiradasPorJugador.put(jugador, total);
-					currentProfileIndex++;
+				// Mostrar resultado y esperar 3 segundos antes de continuar
+				Platform.runLater(() -> {
+					lblAction.setText(jugador.getNickname() + " ha sacado " + dado1 + " + " + dado2 + " = " + total
+							+ "\nResultados hasta ahora:\n" + buildResultadosTexto());
+					lblAction.setPrefWidth(169);
+					lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
+					lblAction.setWrapText(true);
+				});
+
+				// Esperar 3.5 segundos en hilo secundario antes de continuar
+				new Thread(() -> {
+					try {
+						Thread.sleep(3500);
+					} catch (InterruptedException ex) {
+						ex.printStackTrace();
+					}
 					Platform.runLater(() -> {
-						avanzarTurnoLanzamiento();
-						lanzarButton.setDisable(false);
+						if (currentProfileIndex < selectedProfiles.size()) {
+							actualizarUIJugadorActual();
+							lanzarButton.setDisable(false);
+						} else {
+							System.out.println("[ORDEN] Todos han lanzado. Determinando orden...");
+							determinarOrdenTurno();
+						}
 					});
-				}
+				}).start();
 			};
 
-			// Iniciar tirada
 			rollDice();
 		});
 
 		centerPane.getChildren().clear();
 		centerPane.getChildren().addAll(imageDiceFirst, imageDiceSecond, lanzarButton);
-
-		avanzarTurnoLanzamiento();
 	}
 
 	/**
+	 * Construye el texto con los resultados de todos los jugadores que ya han
+	 * lanzado
+	 */
+	private String buildResultadosTexto() {
+		StringBuilder sb = new StringBuilder();
+		for (Profile p : selectedProfiles) {
+			if (tiradasPorJugador.containsKey(p)) {
+				sb.append(p.getNickname()).append(": ").append(tiradasPorJugador.get(p)).append("\n");
+			}
+		}
+		return sb.toString().trim();
+	}
+
+	/**
+	 * Actualiza lblAction, lblPlayerName e imgPlayerPhoto con el jugador actual de
+	 * la fase inicial
+	 */
+	private void actualizarUIJugadorActual() {
+		if (currentProfileIndex >= selectedProfiles.size()) {
+			return;
+		}
+		Profile jugador = selectedProfiles.get(currentProfileIndex);
+		lblAction.setText("Lanza los dados para determinar el orden. Jugador actual: " + jugador.getNickname());
+		lblAction.setPrefWidth(169);
+		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
+		lblAction.setWrapText(true);
+		lblPlayerName.setText(jugador.getNickname());
+		imgPlayerPhoto.setImage(new Image(jugador.getImage()));
+		imgPlayerPhoto.setFitWidth(55);
+		imgPlayerPhoto.setFitHeight(55);
+	}
+
+	/**
+	 * Muestra el panel del turno del jugador: dados + propiedades y cartas.
+	 * 
 	 * @author Ana
 	 */
+	private void mostrarPanelTurnoJugador(Profile profile) {
+		// Buscar el Player correspondiente al Profile
+		Player currentPlayer = null;
+		for (Player p : orderTurn) {
+			if (p.getProfile().equals(profile)) {
+				currentPlayer = p;
+				break;
+			}
+		}
+
+		lblPlayerName.setText(profile.getNickname());
+		imgPlayerPhoto.setImage(new Image(profile.getImage()));
+		imgPlayerPhoto.setFitWidth(55);
+		imgPlayerPhoto.setFitHeight(55);
+
+		actualizarResaltadoJugador(currentPlayer);
+
+		centerPane.getChildren().clear();
+
+		// ── Dados ──────────────────────────────────────────────────────────────
+		imageDiceFirst = new ImageView();
+		imageDiceFirst.setFitWidth(120);
+		imageDiceFirst.setFitHeight(120);
+		imageDiceFirst.setLayoutX(36);
+		imageDiceFirst.setLayoutY(85);
+
+		imageDiceSecond = new ImageView();
+		imageDiceSecond.setFitWidth(120);
+		imageDiceSecond.setFitHeight(120);
+		imageDiceSecond.setLayoutX(212);
+		imageDiceSecond.setLayoutY(85);
+
+		// ── Botón lanzar dados ─────────────────────────────────────────────────
+		Button lanzarButton = new Button("Lanzar dados");
+		lanzarButton.setFont(Font.font("Comic Sans MS", 14));
+		lanzarButton.setLayoutX(129);
+		lanzarButton.setLayoutY(256);
+
+		final Player finalPlayer = currentPlayer;
+		lanzarButton.setOnAction(e -> {
+			lanzarButton.setDisable(true);
+
+			rollDice(resultado -> {
+				int dado1 = resultado.getDado1();
+				int dado2 = resultado.getDado2();
+				int total = dado1 + dado2;
+				System.out.println("Dados: " + dado1 + " + " + dado2 + " = " + total);
+
+				Platform.runLater(() -> {
+					lblAction.setText(finalPlayer.getProfile().getNickname() + " ha sacado " + dado1 + " y " + dado2
+							+ " (total: " + total + ")");
+					lblAction.setPrefWidth(169);
+					lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
+					lblAction.setWrapText(true);
+				});
+
+				if (finalPlayer != null && finalPlayer.getIsBankrupt()) {
+					System.out.println("El jugador " + finalPlayer.getProfile().getNickname() + " está en bancarrota.");
+					turnIndex++;
+					if (turnIndex >= orderTurn.size()) {
+						turnIndex = 0;
+					}
+					startTurn();
+					return;
+				}
+
+				moverFichaJugador(finalPlayer, total);
+				ejecutarMovimiento(finalPlayer, dado1, dado2);
+				lanzarButton.setDisable(false);
+			});
+		});
+
+		// ── Panel de propiedades y cartas del jugador actual ───────────────────
+		VBox propiedadesBox = new VBox(4);
+		propiedadesBox.setPrefWidth(335);
+
+		if (currentPlayer != null) {
+			Label titleProps = new Label("🏠 Propiedades:");
+			titleProps.setFont(Font.font("Comic Sans MS", 13));
+			titleProps.setStyle("-fx-font-weight: bold;");
+			propiedadesBox.getChildren().add(titleProps);
+
+			List<Property> props = currentPlayer.getProperties();
+			if (props == null || props.isEmpty()) {
+				Label noProps = new Label("  (ninguna)");
+				noProps.setFont(Font.font("Comic Sans MS", 11));
+				propiedadesBox.getChildren().add(noProps);
+			} else {
+				for (Property prop : props) {
+					String nombre = (prop.getName() != null && !prop.getName().isEmpty()) ? prop.getName()
+							: "Propiedad #" + prop.getIdProperty();
+					Label propLabel = new Label("  · " + nombre + "  [" + prop.getBuyValue() + "$]");
+					propLabel.setFont(Font.font("Comic Sans MS", 11));
+					propiedadesBox.getChildren().add(propLabel);
+				}
+			}
+
+			propiedadesBox.getChildren().add(new Label(""));
+
+			Label titleCards = new Label("🃏 Cartas:");
+			titleCards.setFont(Font.font("Comic Sans MS", 13));
+			titleCards.setStyle("-fx-font-weight: bold;");
+			propiedadesBox.getChildren().add(titleCards);
+
+			List<Card> cards = currentPlayer.getCards();
+			if (cards == null || cards.isEmpty()) {
+				Label noCards = new Label("  (ninguna)");
+				noCards.setFont(Font.font("Comic Sans MS", 11));
+				propiedadesBox.getChildren().add(noCards);
+			} else {
+				for (Card card : cards) {
+					String tipo = card.getType() == Card.CardType.LUCK ? "Suerte" : "Cofre";
+					String accion = card.getAction() != null ? card.getAction().getActionType().name() : "?";
+					int veces = card.getAction() != null ? card.getAction().getTimes() : 0;
+					Label cardLabel = new Label("  · [" + tipo + "] " + accion + " x" + veces);
+					cardLabel.setFont(Font.font("Comic Sans MS", 11));
+					propiedadesBox.getChildren().add(cardLabel);
+				}
+			}
+		}
+
+		// El ScrollPane de propiedades va al panel izquierdo (mainPane),
+		// debajo del playerOrderContainer (que termina en Y≈170).
+		// Eliminamos primero cualquier scroll anterior que hubiera.
+		mainPane.getChildren().removeIf(n -> n instanceof ScrollPane);
+
+		ScrollPane scrollProps = new ScrollPane(propiedadesBox);
+		scrollProps.setLayoutX(10);
+		scrollProps.setLayoutY(175);
+		scrollProps.setPrefWidth(226);
+		scrollProps.setPrefHeight(430);
+		scrollProps.setFitToWidth(true);
+		scrollProps.setStyle("-fx-background-color: transparent;");
+
+		mainPane.getChildren().add(scrollProps);
+
+		centerPane.getChildren().addAll(imageDiceFirst, imageDiceSecond, lanzarButton);
+	}
+
+	/** @author Ana */
 	private void actualizarResaltadoJugador(Player actualPlayer) {
 		for (int i = 0; i < orderTurn.size(); i++) {
 			Player player = orderTurn.get(i);
@@ -648,95 +943,37 @@ public class GameController {
 			} else {
 				label.setStyle("-fx-font-size: 14px; -fx-padding: 5 0 5 0;");
 			}
-
-			// Actualiza el texto por si el dinero cambió
-			String labelText = String.format("Turno %d: %s - %d€", i + 1, player.getProfile().getNickname(),
+			String labelText = String.format("Turno %d: %s - %d$", i + 1, player.getProfile().getNickname(),
 					player.getMoney());
 			label.setText(labelText);
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
-	private void mostrarPanelTurnoJugador(Profile perfilJugador) {
-		lblPlayerName.setText(perfilJugador.getNickname());
-		imgPlayerPhoto.setImage(new Image(perfilJugador.getImage()));
-		imgPlayerPhoto.setFitWidth(55);
-		imgPlayerPhoto.setFitHeight(55);
-
-		imageDiceFirst = new ImageView();
-		imageDiceFirst.setFitWidth(120);
-		imageDiceFirst.setFitHeight(120);
-		imageDiceFirst.setLayoutX(36);
-		imageDiceFirst.setLayoutY(85);
-
-		imageDiceSecond = new ImageView();
-		imageDiceSecond.setFitWidth(120);
-		imageDiceSecond.setFitHeight(120);
-		imageDiceSecond.setLayoutX(212);
-		imageDiceSecond.setLayoutY(85);
-
-		Button lanzarButton = new Button("Lanzar dados");
-		lanzarButton.setFont(Font.font("Comic Sans MS", 14));
-		lanzarButton.setLayoutX(129);
-		lanzarButton.setLayoutY(256);
-		lanzarButton.setOnAction(e -> {
-			lanzarButton.setDisable(true);
-
-			resultadoCallback = resultado -> {
-				int dado1 = resultado.getDado1();
-				int dado2 = resultado.getDado2();
-				int total = dado1 + dado2;
-
-				Player actualPlayer = orderTurn.get(turnIndex);
-
-				if (actualPlayer.getIsBankrupt()) {
-					System.out
-							.println("El jugador " + actualPlayer.getProfile().getNickname() + " está en bancarrota.");
-					turnIndex++;
-					if (turnIndex >= orderTurn.size()) {
-						turnIndex = 0;
-					}
-					resultadoCallback = null;
-					return;
-				}
-
-				moverFichaJugador(actualPlayer, total);
-				ejecutarMovimiento(actualPlayer, dado1, dado2);
-				resultadoCallback = null;
-			};
-
-			rollDice();
-		});
-		centerPane.getChildren().clear();
-		centerPane.getChildren().addAll(imageDiceFirst, imageDiceSecond, lanzarButton);
-	}
-
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	private void mostrarMensajeJuegoTerminado() {
-		Label lblInfo = new Label();
-		lblInfo.setText("El juego ha terminado");
+		centerPane.getChildren().clear();
+		Label lblInfo = new Label("El juego ha terminado");
 		lblInfo.setLayoutX(28);
 		lblInfo.setLayoutY(102);
 		lblInfo.setMaxWidth(273);
 		lblInfo.setWrapText(true);
 		lblInfo.setFont(Font.font("Comic Sans MS", 14));
+		centerPane.getChildren().add(lblInfo);
 	}
 
-	/* Movimiento */
-	/**
-	 * @author Ana
-	 */
+	/* ── Movimiento ─────────────────────────────────────────────────────────── */
+
+	/** @author Víctor */
 	public void moverFichaJugador(Player actualPlayer, int total) {
 		ImageView imgFicha = actualPlayer.getImgToken();
 		Cell actualCell = actualPlayer.getCell();
 		int actualCellNumber = actualCell.getIdCell();
+
+		// Celdas numeradas del 0 al 39, salida = celda 0
 		int nextCellNumber = (actualCellNumber + total) % TOTAL_NUM_CELLS;
+
 		Cell newCell = cellDAO.findCellById(nextCellNumber);
-		actualPlayer.setCell(newCell); // MUY IMPORTANTE: actualizar la celda del jugador
+		actualPlayer.setCell(newCell);
 
 		Point2D coordenadas = null;
 		for (Map.Entry<Point2D, Cell> entry : mapaCeldaPorCoordenada.entrySet()) {
@@ -748,44 +985,36 @@ public class GameController {
 
 		if (coordenadas != null) {
 			HBox hboxDestino = hboxPorCoordenada.get(coordenadas);
-
 			Parent padre = imgFicha.getParent();
 			if (padre instanceof Pane) {
 				((Pane) padre).getChildren().remove(imgFicha);
 			}
-
 			hboxDestino.getChildren().add(imgFicha);
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Víctor */
 	public void ejecutarMovimiento(Player actualPlayer, int dado1, int dado2) {
 		if (isGameFinished()) {
-			System.out.println("El juego ha terminado. No se puede ejecutar el movimiento.");
 			mostrarMensajeJuegoTerminado();
+			return;
 		}
 
 		actualizarResaltadoJugador(actualPlayer);
 
 		System.out.println("Turno del jugador " + actualPlayer.getProfile().getNickname());
-		// Verificamos si el jugador está en la cárcel
+
 		if (actualPlayer.getJailTurnsLeft() != 0) {
 			lblAction.setText(
 					"El jugador " + actualPlayer.getProfile().getNickname() + " está en la cárcel y no puede moverse.");
 			lblAction.setPrefWidth(169);
 			lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 			lblAction.setWrapText(true);
-			if (dado1 == dado2) {
-				// Si el jugador ha sacado dobles, lanza el dado de nuevo
-				actualPlayer.setJailTurnsLeft(0);
-				System.out.println("El jugador " + actualPlayer.getProfile().getNickname()
-						+ " ha sacado dobles y sale de la cárcel.");
 
+			if (dado1 == dado2) {
+				actualPlayer.setJailTurnsLeft(0);
+				System.out.println(actualPlayer.getProfile().getNickname() + " ha sacado dobles y sale de la cárcel.");
 			} else {
-				System.out.println("El jugador " + actualPlayer.getProfile().getNickname()
-						+ " no ha sacado dobles y sigue en la cárcel.");
 				actualPlayer.setJailTurnsLeft(actualPlayer.getJailTurnsLeft() - 1);
 				turnIndex++;
 				if (turnIndex >= orderTurn.size()) {
@@ -794,99 +1023,81 @@ public class GameController {
 				startTurn();
 			}
 			return;
-		} else {
-			// Si el jugador no está en la cárcel, lanza el dado
-			System.out.println(
-					"El jugador " + actualPlayer.getProfile().getNickname() + " ha sacado " + dado1 + " y " + dado2);
-			if (dado1 == dado2) {
-				// Si el jugador ha sacado dobles, lanza el dado de nuevo
-				System.out.println("El jugador " + actualPlayer.getProfile().getNickname()
-						+ " ha sacado dobles y lanza de nuevo.");
-				mostrarPanelTurnoJugador(actualPlayer.getProfile());
-			}
-			// Avanzamos la ficha
-			Cell actualCell = actualPlayer.getCell();
-			int actualCellNumber = actualCell.getIdCell();
-			System.out.println("Celda actual: " + actualCellNumber + ", dados: " + dado1 + " + " + dado2);
-			int nextCellNumber = (actualCellNumber + dado1 + dado2) % TOTAL_NUM_CELLS;
-			System.out.println("Moviendo a la celda con ID: " + nextCellNumber);
-			Cell newCell = cellDAO.findCellById(nextCellNumber);
-			actualPlayer.setCell(newCell);
-			switch (newCell.getType()) {
-			case PROPERTY:
-				handlePropertyCell(newCell, actualPlayer);
-				break;
-			case JAIL:
-				handleJailCell(actualPlayer);
-				break;
-			case LUCK:
-				handleLuckCell(newCell, actualPlayer);
-				break;
-			case COMMUNITY_CHEST:
-				handleCommunityChestCell(newCell, actualPlayer);
-				break;
-			case START:
-				handleStartCell(newCell, actualPlayer);
-				break;
-			case TAX:
-				handleTaxCell(newCell, actualPlayer);
-				break;
-			case PARKING:
-				System.out.println("El jugador ha caído en el parking. Turno sin acción.");
-				break;
-			default:
-				break;
-			}
-
-			// mirar si el jugador ha ganado o no
-			if (isGameFinished()) {
-				System.out.println("El juego ha terminado. No se puede continuar el turno.");
-				mostrarMensajeJuegoTerminado();
-				return;
-			}
-
-			// Actualizamos el estado del jugador
-			playerDAO.updatePlayer(actualPlayer);
-
-			actualizarResaltadoJugador(actualPlayer);
 		}
+
+		if (dado1 == dado2) {
+			System.out.println(actualPlayer.getProfile().getNickname() + " ha sacado dobles y lanza de nuevo.");
+			mostrarPanelTurnoJugador(actualPlayer.getProfile());
+			return;
+		}
+
+		// ← USA la celda ya actualizada por moverFichaJugador(), no recalcules
+		Cell newCell = actualPlayer.getCell();
+		System.out.println("Jugador en celda: " + newCell.getIdCell() + " tipo: " + newCell.getType());
+
+		switch (newCell.getType()) {
+		case PROPERTY:
+			handlePropertyCell(newCell, actualPlayer);
+			break;
+		case JAIL:
+			handleJailCell(actualPlayer);
+			break;
+		case LUCK:
+			handleLuckCell(newCell, actualPlayer);
+			break;
+		case COMMUNITY_CHEST:
+			handleCommunityChestCell(newCell, actualPlayer);
+			break;
+		case START:
+			handleStartCell(newCell, actualPlayer);
+			break;
+		case TAX:
+			handleTaxCell(newCell, actualPlayer);
+			break;
+		case PARKING:
+			System.out.println("Parking. Sin acción.");
+			break;
+		default:
+			break;
+		}
+
+		if (isGameFinished()) {
+			mostrarMensajeJuegoTerminado();
+			return;
+		}
+
+		playerDAO.updatePlayer(actualPlayer);
+		actualizarResaltadoJugador(actualPlayer);
 	}
 
-	/* Propiedades */
-	/**
-	 * @author Ana
-	 */
+	/* ── Propiedades ────────────────────────────────────────────────────────── */
+
+	/** @author Ana */
 	public void handlePropertyCell(Cell cell, Player player) {
 		lblAction.setText("Has caído en una celda de propiedad.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		System.out.println("Manejando celda de propiedad...");
 		Property property = cell.getProperty();
 		if (property != null) {
-			System.out.println("Partida encontrada: " + actualGame.getIdGame());
 			boolean hasOwner = playerPropertyDAO.isPropertyOwned(property.getIdProperty(), actualGame.getIdGame());
 			int ownerId = playerPropertyDAO.getPropertyOwner(property.getIdProperty(), actualGame.getIdGame());
 			Player owner = playerDAO.findPlayerById(ownerId);
-			System.out.println("Propiedad ID: " + property.getIdProperty() + ", Tiene dueño: " + hasOwner
-					+ ", Dueño ID: " + ownerId);
+
 			if (!hasOwner) {
 				handleComprarPropiedad(property, player);
-			} else if ((hasOwner && owner != null) && owner.getIdPlayer() != player.getIdPlayer()) {
+			} else if (owner != null && owner.getIdPlayer() != player.getIdPlayer()) {
 				handleCobrarAlquiler(property, owner, player);
 			} else {
 				handleUpdateProperty(property, player);
 			}
-
 		} else {
 			System.out.println("No hay propiedad en esta celda.");
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleComprarPropiedad(Property property, Player player) {
 		centerPane.getChildren().clear();
 
@@ -901,17 +1112,13 @@ public class GameController {
 			imgProperty.setLayoutY(27);
 		}
 
-		Button btnBuy = new Button();
-		btnBuy.setText("Comprar propiedad");
+		Button btnBuy = new Button("Comprar propiedad");
 		btnBuy.setFont(Font.font("Comic Sans MS", 14));
 		btnBuy.setLayoutX(34);
 		btnBuy.setLayoutY(320);
-		btnBuy.setOnAction(e -> {
-			comprarPropiedad(property, player);
-		});
+		btnBuy.setOnAction(e -> comprarPropiedad(property, player));
 
-		Button btnCancel = new Button();
-		btnCancel.setText("Terminar turno");
+		Button btnCancel = new Button("Terminar turno");
 		btnCancel.setFont(Font.font("Comic Sans MS", 14));
 		btnCancel.setLayoutX(210);
 		btnCancel.setLayoutY(320);
@@ -924,37 +1131,26 @@ public class GameController {
 		});
 
 		centerPane.getChildren().addAll(imgProperty, btnBuy, btnCancel);
-
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleCobrarAlquiler(Property property, Player owner, Player player) {
 		centerPane.getChildren().clear();
 
 		int alquiler = cobrarAlquiler(property, owner, player);
 
-		Label lblInfo = new Label();
-		lblInfo.setText("Tienes que pagarle " + alquiler + " al propietario " + owner.getProfile().getNickname());
+		Label lblInfo = new Label(
+				"Tienes que pagarle " + alquiler + " al propietario " + owner.getProfile().getNickname());
 		lblInfo.setLayoutX(35);
 		lblInfo.setLayoutY(63);
 		lblInfo.setMaxWidth(317);
 		lblInfo.setWrapText(true);
 		lblInfo.setFont(Font.font("Comic Sans MS", 14));
 
-		Button btnTerminarTurno = new Button();
-		btnTerminarTurno.setText("Terminar turno");
+		Button btnTerminarTurno = new Button("Terminar turno");
 		btnTerminarTurno.setFont(Font.font("Comic Sans MS", 14));
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
-		btnTerminarTurno.layoutBoundsProperty().addListener((obs, oldVal, newVal) -> {
-			double anchoBoton = newVal.getWidth();
-			double altoBoton = newVal.getHeight();
-
-			btnTerminarTurno.setLayoutX((centerPane.getWidth() - anchoBoton) / 2);
-			btnTerminarTurno.setLayoutY((centerPane.getHeight() - altoBoton) / 2);
-		});
 		btnTerminarTurno.setOnAction(e -> {
 			turnIndex++;
 			if (turnIndex >= orderTurn.size()) {
@@ -962,12 +1158,11 @@ public class GameController {
 			}
 			startTurn();
 		});
+
 		centerPane.getChildren().addAll(lblInfo, btnTerminarTurno);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleUpdateProperty(Property property, Player actualPlayer) {
 		centerPane.getChildren().clear();
 
@@ -982,21 +1177,18 @@ public class GameController {
 			imgProperty.setLayoutY(18);
 		}
 
-		Label lblEpisodios = new Label();
-		lblEpisodios.setText("Número de episodios:");
+		Label lblEpisodios = new Label("Número de episodios:");
 		lblEpisodios.setPrefWidth(117);
 		lblEpisodios.setPrefHeight(17);
 		lblEpisodios.setLayoutX(216);
 		lblEpisodios.setLayoutY(6);
 		lblEpisodios.setFont(Font.font("Comic Sans MS", 14));
 
-		HBox hbEpisodios = new HBox();
-		hbEpisodios.setSpacing(5);
+		HBox hbEpisodios = new HBox(5);
 		hbEpisodios.setLayoutX(216);
 		hbEpisodios.setLayoutY(29);
 		hbEpisodios.setPrefWidth(122);
 		hbEpisodios.setPrefHeight(31);
-		hbEpisodios.getChildren().clear();
 		for (int i = 0; i < property.getHouseNumber(); i++) {
 			ImageView houseView = new ImageView(new Image("images/episode.png"));
 			houseView.setFitWidth(30);
@@ -1004,21 +1196,18 @@ public class GameController {
 			hbEpisodios.getChildren().add(houseView);
 		}
 
-		Label lblTemporadas = new Label();
-		lblTemporadas.setText("Número de episodios:");
+		Label lblTemporadas = new Label("Número de temporadas:");
 		lblTemporadas.setPrefWidth(125);
 		lblTemporadas.setPrefHeight(17);
 		lblTemporadas.setLayoutX(216);
 		lblTemporadas.setLayoutY(65);
 		lblTemporadas.setFont(Font.font("Comic Sans MS", 14));
 
-		HBox hbTemporada = new HBox();
-		hbTemporada.setSpacing(5);
+		HBox hbTemporada = new HBox(5);
 		hbTemporada.setLayoutX(216);
 		hbTemporada.setLayoutY(90);
 		hbTemporada.setPrefWidth(122);
 		hbTemporada.setPrefHeight(31);
-		hbTemporada.getChildren().clear();
 		for (int i = 0; i < property.getHotelNumber(); i++) {
 			ImageView hotelView = new ImageView(new Image("images/season.png"));
 			hotelView.setFitWidth(24);
@@ -1026,45 +1215,32 @@ public class GameController {
 			hbTemporada.getChildren().add(hotelView);
 		}
 
-		Button btnComprarCasa = new Button();
-		btnComprarCasa.setText("Comprar episodio");
+		Button btnComprarCasa = new Button("Comprar episodio");
 		btnComprarCasa.setFont(Font.font("Comic Sans MS", 14));
 		btnComprarCasa.setLayoutX(216);
 		btnComprarCasa.setLayoutY(129);
-		btnComprarCasa.setOnAction(e -> {
-			comprarCasa(property, actualPlayer);
-		});
+		btnComprarCasa.setOnAction(e -> comprarCasa(property, actualPlayer));
 
-		Button btnComprarHotel = new Button();
-		btnComprarHotel.setText("Comprar temporada");
-		btnComprarCasa.setFont(Font.font("Comic Sans MS", 14));
-		btnComprarHotel.setLayoutX(216);
-		btnComprarHotel.setLayoutY(215);
-		btnComprarHotel.setOnAction(e -> {
-			comprarHotel(property, actualPlayer);
-		});
-
-		Button btnVenderCasa = new Button();
-		btnVenderCasa.setText("Vender episodio");
-		btnComprarCasa.setFont(Font.font("Comic Sans MS", 14));
+		Button btnVenderCasa = new Button("Vender episodio");
+		btnVenderCasa.setFont(Font.font("Comic Sans MS", 14));
 		btnVenderCasa.setLayoutX(216);
 		btnVenderCasa.setLayoutY(171);
-		btnVenderCasa.setOnAction(e -> {
-			venderCasa(property, actualPlayer);
-		});
+		btnVenderCasa.setOnAction(e -> venderCasa(property, actualPlayer));
 
-		Button btnVenderHotel = new Button();
-		btnVenderHotel.setText("Vender temporada");
-		btnComprarCasa.setFont(Font.font("Comic Sans MS", 14));
+		Button btnComprarHotel = new Button("Comprar temporada");
+		btnComprarHotel.setFont(Font.font("Comic Sans MS", 14));
+		btnComprarHotel.setLayoutX(216);
+		btnComprarHotel.setLayoutY(215);
+		btnComprarHotel.setOnAction(e -> comprarHotel(property, actualPlayer));
+
+		Button btnVenderHotel = new Button("Vender temporada");
+		btnVenderHotel.setFont(Font.font("Comic Sans MS", 14));
 		btnVenderHotel.setLayoutX(216);
 		btnVenderHotel.setLayoutY(262);
-		btnVenderHotel.setOnAction(e -> {
-			venderHotel(property, actualPlayer);
-		});
+		btnVenderHotel.setOnAction(e -> venderHotel(property, actualPlayer));
 
-		Button btnTerminarTurno = new Button();
-		btnTerminarTurno.setText("Terminar turno");
-		btnComprarCasa.setFont(Font.font("Comic Sans MS", 14));
+		Button btnTerminarTurno = new Button("Terminar turno");
+		btnTerminarTurno.setFont(Font.font("Comic Sans MS", 14));
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(315);
 		btnTerminarTurno.setOnAction(e -> {
@@ -1074,44 +1250,33 @@ public class GameController {
 			}
 			startTurn();
 		});
+
 		centerPane.getChildren().addAll(imgProperty, lblEpisodios, hbEpisodios, lblTemporadas, hbTemporada,
-				btnComprarCasa, btnComprarHotel, btnVenderCasa, btnVenderHotel, btnTerminarTurno);
+				btnComprarCasa, btnVenderCasa, btnComprarHotel, btnVenderHotel, btnTerminarTurno);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void comprarPropiedad(Property property, Player player) {
-		System.out.println("Comprando propiedad...");
 		boolean hasOwner = playerPropertyDAO.isPropertyOwned(property.getIdProperty(), actualGame.getIdGame());
 		if (!hasOwner) {
 			int propertyValue = property.getBuyValue();
-			int actualMoney = player.getMoney();
-			if (checkIfPlayerCanPurchase(actualMoney, propertyValue)) {
-				int substractedMoney = actualMoney - propertyValue;
-				player.setMoney(substractedMoney);
-				List<Property> properties = player.getProperties();
-				properties.add(property);
-				player.setProperties(properties);
-				System.out.println(
-						"Propiedad comprada: " + property.getIdProperty() + " por el jugador: " + player.getIdPlayer());
+			if (checkIfPlayerCanPurchase(player.getMoney(), propertyValue)) {
+				player.setMoney(player.getMoney() - propertyValue);
+				player.getProperties().add(property);
 				playerPropertyDAO.addPlayerProperty(
 						new PlayerProperty(player.getIdPlayer(), property.getIdProperty(), actualGame.getIdGame()));
+				System.out.println(
+						"Propiedad " + property.getIdProperty() + " comprada por jugador " + player.getIdPlayer());
 			} else {
 				player.setBankrupt(true);
 			}
 		} else {
-			System.out.println("La propiedad ya tiene dueño");
+			System.out.println("La propiedad ya tiene dueño.");
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void venderPropiedad(Property property, Player seller, Player buyer) {
-		System.out.println("Vendiendo propiedad...");
-
-		// Verificar que el vendedor es el dueño
 		boolean esDueno = playerPropertyDAO.getPropertyOwner(property.getIdProperty(), actualGame.getIdGame()) == seller
 				.getIdPlayer();
 		if (!esDueno) {
@@ -1120,203 +1285,144 @@ public class GameController {
 		}
 
 		int valorVenta = property.getSellValue();
-		int dineroComprador = buyer.getMoney();
-
-		if (dineroComprador < valorVenta) {
-			System.out.println("El comprador no tiene suficiente dinero para la compra.");
+		if (buyer.getMoney() < valorVenta) {
+			System.out.println("El comprador no tiene suficiente dinero.");
 			buyer.setBankrupt(true);
 			return;
 		}
 
-		// Realizar la transacción económica
-		buyer.setMoney(dineroComprador - valorVenta);
+		buyer.setMoney(buyer.getMoney() - valorVenta);
 		seller.setMoney(seller.getMoney() + valorVenta);
 
-		// Actualizar propiedad del comprador y eliminarla del vendedor
 		playerPropertyDAO.deletePlayerProperty(property.getIdProperty(), seller.getIdPlayer(), actualGame.getIdGame());
 		playerPropertyDAO.addPlayerProperty(
 				new PlayerProperty(buyer.getIdPlayer(), property.getIdProperty(), actualGame.getIdGame()));
 
-		// Actualizar listas en memoria
 		seller.getProperties().remove(property);
 		buyer.getProperties().add(property);
 
-		System.out.println("Propiedad vendida correctamente de " + seller.getProfile().getNickname() + " a "
-				+ buyer.getProfile().getNickname() + " por " + valorVenta + "€.");
+		System.out.println("Propiedad vendida de " + seller.getProfile().getNickname() + " a "
+				+ buyer.getProfile().getNickname() + " por " + valorVenta + "$.");
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void comprarCasa(Property property, Player player) {
-		lblAction.setText("Has caído en una celda de propiedad. Puedes comprarla");
+		lblAction.setText("Has caído en una celda de propiedad. Puedes comprarla.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		if (property.getHouseNumber() >= 3 && property.getHotelNumber() <= 1) {
-			System.out.println("Comprando casa...");
-			int houseValue = property.getHouseBuyValue();
-			int actualMoney = player.getMoney();
-			if (checkIfPlayerCanPurchase(actualMoney, houseValue)) {
-				int substractedMoney = actualMoney - houseValue;
-				player.setMoney(substractedMoney);
-				int houseNumber = property.getHouseNumber();
-				property.setHouseNumber(houseNumber + 1);
+		if (property.getHouseNumber() < 3 && property.getHotelNumber() == 0) {
+			if (checkIfPlayerCanPurchase(player.getMoney(), property.getHouseBuyValue())) {
+				player.setMoney(player.getMoney() - property.getHouseBuyValue());
+				property.setHouseNumber(property.getHouseNumber() + 1);
 			} else {
 				player.setBankrupt(true);
 			}
 		} else {
-			System.out.println("Error, no tiene suficientes casas o ya tiene un hotel comprado");
+			System.out.println("No se puede comprar episodio: ya tiene 3 o tiene temporada.");
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void comprarHotel(Property property, Player player) {
-		lblAction.setText("Has caído en una celda de tu propiedad. Puedes comprar un hotel si tienes 3 casas.");
+		lblAction.setText("Puedes comprar una temporada si tienes 3 episodios.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		if (property.getHouseNumber() == 2 || property.getHotelNumber() < 1) {
-			System.out.println("Comprando hotel...");
-			int hotelValue = property.getHotelBuyValue();
-			int actualMoney = player.getMoney();
-			if (checkIfPlayerCanPurchase(actualMoney, hotelValue)) {
-				int substractedMoney = actualMoney - hotelValue;
-				player.setMoney(substractedMoney);
+		if (property.getHouseNumber() == 3 && property.getHotelNumber() == 0) {
+			if (checkIfPlayerCanPurchase(player.getMoney(), property.getHotelBuyValue())) {
+				player.setMoney(player.getMoney() - property.getHotelBuyValue());
 				property.setHotelNumber(1);
+				property.setHouseNumber(0);
 			} else {
 				player.setBankrupt(true);
 			}
 		} else {
-			System.out.println("Error, no tiene suficientes casas o ya tiene un hotel comprado");
+			System.out.println("No se puede comprar temporada: necesitas 3 episodios y no tener temporada.");
 		}
 	}
 
-	/**
-	 * 
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void venderCasa(Property property, Player player) {
-		lblAction.setText("Has caído en una celda de tu propiedad. Puedes vender una casa si tienes al menos 1 casa.");
+		lblAction.setText("Puedes vender un episodio si tienes al menos 1.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		if ((property.getHouseNumber() >= 1 && property.getHouseNumber() <= 3) && property.getHotelNumber() == 0) {
-			System.out.println("Vendiendo casa...");
-			int houseValue = property.getHouseBuyValue();
-			int actualMoney = player.getMoney();
-			if (!player.getIsBankrupt()) {
-				int addedMoney = actualMoney + houseValue;
-				player.setMoney(addedMoney);
-				int houseNumber = property.getHouseNumber();
-				property.setHouseNumber(houseNumber - 1);
-			} else {
-				System.out.println("Estás en bancarrota, ya no puedes jugar");
-			}
+		if (property.getHouseNumber() >= 1 && property.getHotelNumber() == 0) {
+			player.setMoney(player.getMoney() + property.getHouseBuyValue());
+			property.setHouseNumber(property.getHouseNumber() - 1);
 		} else {
-			System.out.println(
-					"Error, no puedes vender la casa porque no tienes al menos una casa o tienes un hotel comprado");
+			System.out.println("No se puede vender episodio.");
 		}
 	}
 
-	/**
-	 * 
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void venderHotel(Property property, Player player) {
-		lblAction.setText("Has caído en una celda de tu propiedad. Puedes vender un hotel si tienes 1 hotel.");
+		lblAction.setText("Puedes vender una temporada si tienes 1.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
 		if (property.getHotelNumber() == 1) {
-			System.out.println("Vendiendo hotel...");
-			int hotelValue = property.getHotelBuyValue();
-			int actualMoney = player.getMoney();
-			if (!player.getIsBankrupt()) {
-				int addedMoney = actualMoney + hotelValue;
-				player.setMoney(addedMoney);
-				property.setHotelNumber(0);
-			} else {
-				System.out.println("Estás en bancarrota, ya no puedes jugar");
-			}
+			player.setMoney(player.getMoney() + property.getHotelBuyValue());
+			property.setHotelNumber(0);
 		} else {
-			System.out.println("Error, no puedes vender el hotel porque no tienes uno");
+			System.out.println("No se puede vender temporada: no tienes ninguna.");
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public int cobrarAlquiler(Property property, Player owner, Player renter) {
-	    if (owner == null || renter == null || property == null) {
-	        System.err.println("Invalid parameters: owner=" + owner + ", renter=" + renter + ", property=" + property);
-	        lblAction.setText("Error: Datos no válidos.");
-	        return 0;
-	    }
-
-	    String ownerNickname = (owner.getProfile() != null) ? owner.getProfile().getNickname() : "Desconocido";
-	    
-	    lblAction.setText("Has caído en una celda de propiedad. El dueño es: " + ownerNickname
-	            + ". Se cobrará el alquiler correspondiente.");
-	    lblAction.setPrefWidth(169);
-	    lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
-	    lblAction.setWrapText(true);
-
-	    System.out.println("Cobrando alquiler...");
-	    int rent = 0;
-	    if (property.getHouseNumber() == 0 && property.getHotelNumber() == 0) {
-	        rent = property.getRentBaseValue();
-	    } else if (property.getHouseNumber() > 0) {
-	        List<RentHouseValue> rents = property.getRentHouseValue();
-	        if (rents != null && property.getHouseNumber() <= rents.size()) {
-	            rent = rents.get(property.getHouseNumber() - 1).getRentValue();
-	        } else {
-	            System.err.println("Invalid rent data for property: " + property);
-	        }
-	    } else if (property.getHotelNumber() == 1) {
-	        rent = property.getRentHotelValue();
-	    }
-
-	    if (checkIfPlayerCanPurchase(renter.getMoney(), rent)) {
-	        int substractedMoney = renter.getMoney() - rent;
-	        renter.setMoney(substractedMoney);
-	        int addedMoney = owner.getMoney() + rent;
-	        owner.setMoney(addedMoney);
-	    } else {
-	        renter.setBankrupt(true);
-	        String renterNickname = (renter.getProfile() != null) ? renter.getProfile().getNickname() : "Desconocido";
-	        System.out.println("El jugador " + renterNickname + " está en bancarrota.");
-	    }
-	    return rent;
-	}
-
-	/**
-	 * @author Ana
-	 */
-	public Boolean checkIfPlayerCanPurchase(int actualMoney, int quantity) {
-		int substractedMoney = actualMoney - quantity;
-		if (actualMoney == 0) {
-			return false;
-		} else if (substractedMoney < 0) {
-			return false;
-		} else {
-			return true;
+		if (owner == null || renter == null || property == null) {
+			System.err.println("Parámetros inválidos en cobrarAlquiler.");
+			return 0;
 		}
+
+		lblAction.setText(
+				"Has caído en una propiedad de " + owner.getProfile().getNickname() + ". Se cobrará el alquiler.");
+		lblAction.setPrefWidth(169);
+		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
+		lblAction.setWrapText(true);
+
+		int rent = 0;
+		if (property.getHouseNumber() == 0 && property.getHotelNumber() == 0) {
+			rent = property.getRentBaseValue();
+		} else if (property.getHouseNumber() > 0) {
+			List<RentHouseValue> rents = property.getRentHouseValue();
+			if (rents != null && property.getHouseNumber() <= rents.size()) {
+				rent = rents.get(property.getHouseNumber() - 1).getRentValue();
+			}
+		} else if (property.getHotelNumber() == 1) {
+			rent = property.getRentHotelValue();
+		}
+
+		if (checkIfPlayerCanPurchase(renter.getMoney(), rent)) {
+			renter.setMoney(renter.getMoney() - rent);
+			owner.setMoney(owner.getMoney() + rent);
+		} else {
+			renter.setBankrupt(true);
+			System.out.println("El jugador " + renter.getProfile().getNickname() + " está en bancarrota.");
+		}
+		return rent;
 	}
 
-	/* Acciones en celdas */
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
+	public Boolean checkIfPlayerCanPurchase(int actualMoney, int quantity) {
+		return actualMoney > 0 && (actualMoney - quantity) >= 0;
+	}
+
+	/* ── Acciones en celdas ─────────────────────────────────────────────────── */
+
+	/** @author Ana */
 	public void executeAction(Action action, Player player) {
 		String type = action.getActionType().name();
 		int value = action.getTimes();
+		Cell actualCell;
+		int actualCellNumber, nextCellNumber;
+		Cell newCell;
 
 		switch (type) {
 		case "PAY":
@@ -1348,43 +1454,22 @@ public class GameController {
 			mostrarPanelTurnoJugador(player.getProfile());
 			break;
 		case "GO_BACK_CELLS":
-			if (actualPlayer == null) {
-		        System.err.println("Error: actualPlayer is null in executeAction");
-		        lblAction.setText("Error: No hay jugador actual.");
-		        return;
-		    }
-			Cell actualCell = actualPlayer.getCell();
-			int actualCellNumber = actualCell.getIdCell();
-			int nextCellNumber = (actualCellNumber - value) % TOTAL_NUM_CELLS;
-			Cell newCell = cellDAO.findCellById(nextCellNumber);
-			player.setCell(newCell);
-			break;
-		case "MOVE_CELLS":
-			if (actualPlayer == null) {
-		        System.err.println("Error: actualPlayer is null in executeAction");
-		        lblAction.setText("Error: No hay jugador actual.");
-		        return;
-		    }
-			actualCell = actualPlayer.getCell();
+			actualCell = player.getCell();
 			actualCellNumber = actualCell.getIdCell();
-			nextCellNumber = (actualCellNumber + value) % TOTAL_NUM_CELLS;
+			nextCellNumber = (actualCellNumber - value % TOTAL_NUM_CELLS + TOTAL_NUM_CELLS) % TOTAL_NUM_CELLS;
 			newCell = cellDAO.findCellById(nextCellNumber);
 			player.setCell(newCell);
 			break;
+		case "MOVE_CELLS":
 		case "SUM_CELL":
-			if (actualPlayer == null) {
-		        System.err.println("Error: actualPlayer is null in executeAction");
-		        lblAction.setText("Error: No hay jugador actual.");
-		        return;
-		    }
-			actualCell = actualPlayer.getCell();
+			actualCell = player.getCell();
 			actualCellNumber = actualCell.getIdCell();
 			nextCellNumber = (actualCellNumber + value) % TOTAL_NUM_CELLS;
 			newCell = cellDAO.findCellById(nextCellNumber);
 			player.setCell(newCell);
 			break;
 		case "GO_EXIT":
-			newCell = cellDAO.findCellById(1);
+			newCell = cellDAO.findCellById(0);
 			player.setCell(newCell);
 			break;
 		default:
@@ -1393,36 +1478,29 @@ public class GameController {
 		}
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleJailCell(Player player) {
 		lblAction.setText("Has caído en una celda de cárcel.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		System.out.println("Manejando celda de cárcel...");
 		player.setJailTurnsLeft(3);
-
 		centerPane.getChildren().clear();
 
-		Label lblInfo = new Label();
-		lblInfo.setText("¡Oh no, has caído en la cárcel!");
+		Label lblInfo = new Label("¡Oh no, has caído en la cárcel!");
 		lblInfo.setLayoutX(85);
 		lblInfo.setLayoutY(49);
 		lblInfo.setMaxWidth(215);
 		lblInfo.setFont(Font.font("Comic Sans MS", 14));
 
-		ImageView imgCarcel = new ImageView();
-		imgCarcel.setImage(new Image("/images/cells/jail.jpg"));
+		ImageView imgCarcel = new ImageView(new Image("/images/cells/jail.jpg"));
 		imgCarcel.setFitWidth(110);
 		imgCarcel.setFitHeight(110);
 		imgCarcel.setLayoutX(133);
 		imgCarcel.setLayoutY(107);
 
-		Button btnTerminarTurno = new Button();
-		btnTerminarTurno.setText("Terminar turno");
+		Button btnTerminarTurno = new Button("Terminar turno");
 		btnTerminarTurno.setFont(Font.font("Comic Sans MS", 14));
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
@@ -1437,33 +1515,25 @@ public class GameController {
 		centerPane.getChildren().addAll(lblInfo, imgCarcel, btnTerminarTurno);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleStartCell(Cell cell, Player player) {
 		lblAction.setText("Has caído en la celda de salida.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		System.out.println("Manejando celda de salida...");
 		int startMoney = 200;
-		int actualMoney = player.getMoney();
-		int addedMoney = actualMoney + startMoney;
-		player.setMoney(addedMoney);
-
+		player.setMoney(player.getMoney() + startMoney);
 		centerPane.getChildren().clear();
 
-		Label lblInfo = new Label();
-		lblInfo.setText("Has pasado por la salida y has recibido " + startMoney + " dólares.");
+		Label lblInfo = new Label("Has pasado por la salida y has recibido " + startMoney + " dólares.");
 		lblInfo.setLayoutX(85);
 		lblInfo.setLayoutY(49);
 		lblInfo.setMaxWidth(215);
 		lblInfo.setWrapText(true);
 		lblInfo.setFont(Font.font("Comic Sans MS", 14));
 
-		Button btnTerminarTurno = new Button();
-		btnTerminarTurno.setText("Terminar turno");
+		Button btnTerminarTurno = new Button("Terminar turno");
 		btnTerminarTurno.setFont(Font.font("Comic Sans MS", 14));
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
@@ -1478,29 +1548,23 @@ public class GameController {
 		centerPane.getChildren().addAll(lblInfo, btnTerminarTurno);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleTaxCell(Cell cell, Player player) {
 		lblAction.setText("Has caído en una celda de impuestos.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Double.MAX_VALUE / 5);
 		lblAction.setWrapText(true);
 
-		System.out.println("Manejando celda de impuestos...");
 		int taxAmount = 200;
-		int actualMoney = player.getMoney();
-		if (checkIfPlayerCanPurchase(actualMoney, taxAmount)) {
-			int substractedMoney = actualMoney - taxAmount;
-			player.setMoney(substractedMoney);
+		if (checkIfPlayerCanPurchase(player.getMoney(), taxAmount)) {
+			player.setMoney(player.getMoney() - taxAmount);
 		} else {
 			player.setBankrupt(true);
 		}
 
 		centerPane.getChildren().clear();
 
-		Label lblInfo = new Label();
-		lblInfo.setText("Has caído en la celda de impuestos y has pagado " + taxAmount
+		Label lblInfo = new Label("Has caído en la celda de impuestos y has pagado " + taxAmount
 				+ " dólares para poder hacer el rodaje de tu serie favorita.");
 		lblInfo.setLayoutX(35);
 		lblInfo.setLayoutY(63);
@@ -1508,12 +1572,10 @@ public class GameController {
 		lblInfo.setWrapText(true);
 		lblInfo.setFont(Font.font("Comic Sans MS", 12));
 
-		Button btnTerminarTurno = new Button();
-		btnTerminarTurno.setText("Terminar turno");
+		Button btnTerminarTurno = new Button("Terminar turno");
 		btnTerminarTurno.setFont(Font.font("Comic Sans MS", 14));
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
-
 		btnTerminarTurno.setOnAction(e -> {
 			turnIndex++;
 			if (turnIndex >= orderTurn.size()) {
@@ -1525,21 +1587,38 @@ public class GameController {
 		centerPane.getChildren().addAll(lblInfo, btnTerminarTurno);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleLuckCell(Cell cell, Player player) {
 		lblAction.setText("Has caído en una celda de carta de suerte.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		System.out.println("Manejando celda de suerte...");
 		Card luckyCard = getRandomCard(CardType.LUCK);
-		System.out.println("Carta de suerte obtenida: " + luckyCard.getIdCard());
-		List<Card> cards = player.getCards();
-		cards.add(luckyCard);
-		player.setCards(cards);
+		if (luckyCard == null) {
+			System.out.println("[ERROR] No se pudo obtener carta de suerte.");
+			centerPane.getChildren().clear();
+			Label lblErr = new Label("No se pudo obtener carta. Turno sin acción.");
+			lblErr.setLayoutX(35);
+			lblErr.setLayoutY(63);
+			lblErr.setMaxWidth(317);
+			lblErr.setWrapText(true);
+			lblErr.setFont(Font.font("Comic Sans MS", 14));
+			Button btnSkip = new Button("Terminar turno");
+			btnSkip.setFont(Font.font("Comic Sans MS", 14));
+			btnSkip.setLayoutX(129);
+			btnSkip.setLayoutY(256);
+			btnSkip.setOnAction(e -> {
+				turnIndex++;
+				if (turnIndex >= orderTurn.size()) {
+					turnIndex = 0;
+				}
+				startTurn();
+			});
+			centerPane.getChildren().addAll(lblErr, btnSkip);
+			return;
+		}
+		player.getCards().add(luckyCard);
 		playerCardDAO
 				.addPlayerCard(new PlayerCard(player.getIdPlayer(), luckyCard.getIdCard(), actualGame.getIdGame()));
 
@@ -1548,8 +1627,6 @@ public class GameController {
 		ImageView imgLuck = new ImageView();
 		String resourcePath = MessageFormat.format(LUCK_IMAGE, luckyCard.getIdCard());
 		URL resourceUrl = getClass().getClassLoader().getResource(resourcePath);
-		System.out.println("Buscando recurso en: " + resourcePath);
-		System.out.println("URL recurso: " + resourceUrl);
 		if (resourceUrl != null) {
 			imgLuck.setImage(new Image(resourceUrl.toString()));
 			imgLuck.setFitWidth(311);
@@ -1558,8 +1635,7 @@ public class GameController {
 			imgLuck.setLayoutY(29);
 		}
 
-		Button btnTerminarTurno = new Button();
-		btnTerminarTurno.setText("Ejecutar acción y terminar turno");
+		Button btnTerminarTurno = new Button("Ejecutar acción y terminar turno");
 		btnTerminarTurno.setFont(Font.font("Comic Sans MS", 14));
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
@@ -1575,21 +1651,38 @@ public class GameController {
 		centerPane.getChildren().addAll(imgLuck, btnTerminarTurno);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public void handleCommunityChestCell(Cell cell, Player player) {
 		lblAction.setText("Has caído en una celda de cofre de comunidad.");
 		lblAction.setPrefWidth(169);
 		lblAction.setPrefHeight(Region.USE_COMPUTED_SIZE);
 		lblAction.setWrapText(true);
 
-		System.out.println("Manejando celda de cofre comunitario...");
 		Card chestCard = getRandomCard(CardType.COMMUNITY_CHEST);
-		System.out.println("Carta de cofre obtenida: " + chestCard.getIdCard());
-		List<Card> cards = player.getCards();
-		cards.add(chestCard);
-		player.setCards(cards);
+		if (chestCard == null) {
+			System.out.println("[ERROR] No se pudo obtener carta de cofre.");
+			centerPane.getChildren().clear();
+			Label lblErr = new Label("No se pudo obtener carta. Turno sin acción.");
+			lblErr.setLayoutX(35);
+			lblErr.setLayoutY(63);
+			lblErr.setMaxWidth(317);
+			lblErr.setWrapText(true);
+			lblErr.setFont(Font.font("Comic Sans MS", 14));
+			Button btnSkip = new Button("Terminar turno");
+			btnSkip.setFont(Font.font("Comic Sans MS", 14));
+			btnSkip.setLayoutX(129);
+			btnSkip.setLayoutY(256);
+			btnSkip.setOnAction(e -> {
+				turnIndex++;
+				if (turnIndex >= orderTurn.size()) {
+					turnIndex = 0;
+				}
+				startTurn();
+			});
+			centerPane.getChildren().addAll(lblErr, btnSkip);
+			return;
+		}
+		player.getCards().add(chestCard);
 		playerCardDAO
 				.addPlayerCard(new PlayerCard(player.getIdPlayer(), chestCard.getIdCard(), actualGame.getIdGame()));
 
@@ -1606,8 +1699,7 @@ public class GameController {
 			imgChest.setLayoutY(29);
 		}
 
-		Button btnTerminarTurno = new Button();
-		btnTerminarTurno.setText("Ejecutar acción y terminar turno");
+		Button btnTerminarTurno = new Button("Ejecutar acción y terminar turno");
 		btnTerminarTurno.setFont(Font.font("Comic Sans MS", 14));
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
@@ -1623,20 +1715,24 @@ public class GameController {
 		centerPane.getChildren().addAll(imgChest, btnTerminarTurno);
 	}
 
-	/**
-	 * @author Ana
-	 */
+	/** @author Ana */
 	public Card getRandomCard(CardType cardType) {
-		Card card = new Card();
-		if (cardType == CardType.LUCK) {
-			int randomId = (int) (Math.random() * (NUM_CARD_FINISH_LUCK - NUM_CARD_INIT_LUCK + 1)) + NUM_CARD_INIT_LUCK;
-			System.out.println("Random ID for luck card: " + randomId);
+		Card card = null;
+		int attempts = 0;
+		while (card == null && attempts < 10) {
+			int randomId;
+			if (cardType == CardType.LUCK) {
+				randomId = (int) (Math.random() * (NUM_CARD_FINISH_LUCK - NUM_CARD_INIT_LUCK + 1)) + NUM_CARD_INIT_LUCK;
+			} else {
+				randomId = (int) (Math.random() * (NUM_CARD_FINISH_CHEST - NUM_CARD_INIT_CHEST + 1))
+						+ NUM_CARD_INIT_CHEST;
+			}
+			System.out.println("Buscando carta ID: " + randomId + " tipo: " + cardType);
 			card = cardDAO.findCardById(randomId);
-		} else if (cardType == CardType.COMMUNITY_CHEST) {
-			int randomId = (int) (Math.random() * (NUM_CARD_FINISH_CHEST - NUM_CARD_INIT_CHEST + 1))
-					+ NUM_CARD_INIT_CHEST;
-			System.out.println("Random ID for chest card: " + randomId);
-			card = cardDAO.findCardById(randomId);
+			if (card == null) {
+				System.out.println("[WARN] Carta " + randomId + " no encontrada, reintentando...");
+			}
+			attempts++;
 		}
 		return card;
 	}

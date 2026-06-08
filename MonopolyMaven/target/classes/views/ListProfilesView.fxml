@@ -19,7 +19,8 @@
             <ListView fx:id="listProfiles" layoutX="15.0" layoutY="101.0" prefHeight="430.0" prefWidth="768.0" styleClass="main-background" />
             <Button fx:id="goBackButton" layoutX="680.0" layoutY="544.0" mnemonicParsing="false" onAction="#goBack" prefHeight="43.0" prefWidth="100.0" styleClass="main-buttons" text="Volver" />
             <Button fx:id="createProfile" layoutX="606.0" layoutY="46.0" mnemonicParsing="false" onAction="#addProfile" prefHeight="42.0" prefWidth="165.0" styleClass="main-buttons" text="Crear perfil" />
-         	<Button fx:id="startButton" layoutX="337.0" layoutY="544.0" mnemonicParsing="false" onAction="#onStartButtonClicked" prefHeight="43.0" prefWidth="125.0" styleClass="main-buttons" text="Empezar" />
+            <Button fx:id="startButton" layoutX="337.0" layoutY="544.0" mnemonicParsing="false" onAction="#onStartButtonClicked" prefHeight="43.0" prefWidth="125.0" styleClass="main-buttons" text="Empezar" />
+            <Button fx:id="deleteProfileButton" layoutX="15.0" layoutY="544.0" mnemonicParsing="false" onAction="#deleteProfile" prefHeight="43.0" prefWidth="125.0" styleClass="main-buttons" text="Borrar" />
          </children>
       </AnchorPane>
    </center>

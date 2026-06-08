@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ListGamesSavedController">
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ListGamesSavedController">
    <center>
       <AnchorPane fx:id="listGamesLayout" maxHeight="600.0" maxWidth="800.0" minHeight="600.0" minWidth="800.0" prefHeight="600.0" prefWidth="800.0" BorderPane.alignment="CENTER">
          <children>
@@ -16,8 +16,10 @@
                   <Font size="36.0" />
                </font>
             </Label>
-            <ListView fx:id="listProfiles" layoutX="9.0" layoutY="100.0" prefHeight="489.0" prefWidth="780.0" />
+            <ListView fx:id="listGames" layoutX="9.0" layoutY="100.0" prefHeight="489.0" prefWidth="780.0" />
             <Button fx:id="goBackButton" layoutX="700.0" layoutY="560.0" mnemonicParsing="false" onAction="#goBack" text="Go back" />
+            <Button fx:id="loadGameButton" onAction="#loadSelectedGame" layoutX="684.0" layoutY="76.0" mnemonicParsing="false" text="Cargar Partida" />
+            <Button fx:id="deleteGameButton" onAction="#deleteSelectedGame" layoutX="570.0" layoutY="76.0" mnemonicParsing="false" text="Borrar Partida" />
          </children>
       </AnchorPane>
    </center>

@@ -1,7 +1,6 @@
 package controllers;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -46,6 +46,9 @@ public class ListProfilesController {
 	@FXML
 	private Button startButton;
 
+	@FXML
+	private Button deleteProfileButton;
+
 	private String selectedImagePath;
 
 	private static DAOManager daoManager = new DAOManager();
@@ -60,14 +63,12 @@ public class ListProfilesController {
 	public void configureView() {
 		System.out.println("New game: " + isNewGame);
 
-		// Lógica para configurar la selección
 		if (isNewGame) {
 			listProfiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		} else {
 			listProfiles.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		}
 
-		// Conseguir los perfiles para que se vean al abrir la ventana
 		List<Profile> profiles = profileDAO.getAll();
 		listProfiles.getItems().clear();
 		listProfiles.setCellFactory(list -> new ListCell<Profile>() {
@@ -99,37 +100,32 @@ public class ListProfilesController {
 
 		listProfiles.getItems().addAll(profiles);
 		listProfiles.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
-			if (newValue != null) {
-				if (isNewGame) {
-					// Si el perfil ya está en selectedProfiles, lo eliminamos
-					if (selectedProfiles.contains(newValue)) {
-						selectedProfiles.remove(newValue);
-						// TODO mirar si se puede hacer visual el que se seleccione y deseleccione
-					} else {
-						// Si no está en selectedProfiles, lo añadimos
-						selectedProfiles.add(newValue);
-						// TODO mirar si se puede hacer visual el que se seleccione y deseleccione
-					}
+			if (newValue != null && isNewGame) {
+				if (selectedProfiles.contains(newValue)) {
+					selectedProfiles.remove(newValue);
 				} else {
-					openProfile();
+					selectedProfiles.add(newValue);
 				}
 			}
 		});
 
+		// Solo abre el perfil con doble clic — así el simple clic solo selecciona
+		// y el botón "Borrar" puede actuar sobre el perfil seleccionado
+		listProfiles.setOnMouseClicked(event -> {
+			if (event.getClickCount() == 2 && !isNewGame) {
+				openProfile();
+			}
+		});
 	}
 
 	public void openProfile() {
-		// Get the selected profile
 		Profile selectedProfile = listProfiles.getSelectionModel().getSelectedItem();
 
 		if (selectedProfile != null) {
 			try {
-
-				// Load the profile view
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ProfileView.fxml"));
 				Parent profileViewRoot = loader.load();
 
-				// Pass the selected profile to the ProfileController
 				ProfileController profileController = loader.getController();
 				profileController.setProfile(selectedProfile);
 
@@ -147,7 +143,6 @@ public class ListProfilesController {
 
 	@FXML
 	public void addProfile(ActionEvent event) {
-		// Show the profile creation view
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ProfileView.fxml"));
 			Parent addProfileRoot = loader.load();
@@ -164,35 +159,40 @@ public class ListProfilesController {
 	}
 
 	@FXML
-	public void confirmSelection(ActionEvent event) {
-		String nickname = nicknameField.getText().trim();
+	public void deleteProfile(ActionEvent event) {
+		Profile selectedProfile = listProfiles.getSelectionModel().getSelectedItem();
 
-		if (nickname.isEmpty() || selectedImagePath == null) {
-			Alert alert = new Alert(Alert.AlertType.ERROR);
-			alert.setTitle("Invalid Input");
-			alert.setHeaderText("Nickname or Image Missing");
-			alert.setContentText("Please enter a nickname and select an image.");
+		if (selectedProfile == null) {
+			Alert alert = new Alert(Alert.AlertType.WARNING);
+			alert.setTitle("Sin selección");
+			alert.setHeaderText("No hay perfil seleccionado");
+			alert.setContentText("Selecciona un perfil para borrar.");
 			alert.showAndWait();
 			return;
 		}
 
-		Profile newProfile = new Profile(0, nickname, selectedImagePath);
-		listProfiles.getItems().add(newProfile);
+		Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+		confirm.setTitle("Confirmar borrado");
+		confirm.setHeaderText("¿Seguro que quieres borrar el perfil \"" + selectedProfile.getNickname() + "\"?");
+		confirm.setContentText("Esta acción no se puede deshacer.");
 
-		// Clear fields
-		nicknameField.clear();
-		selectedImagePath = null;
+		confirm.showAndWait().ifPresent(response -> {
+			if (response == ButtonType.OK) {
+				profileDAO.deleteProfile(selectedProfile.getIdProfile());
+				listProfiles.getItems().remove(selectedProfile);
+				selectedProfiles.remove(selectedProfile);
+				System.out.println("[DEBUG] Perfil borrado: " + selectedProfile.getNickname());
+			}
+		});
 	}
 
 	public List<Profile> getSelectedProfiles() {
-		// Return a new ArrayList to avoid exposing internal selection model directly
 		return new ArrayList<>(listProfiles.getSelectionModel().getSelectedItems());
 	}
 
 	@FXML
 	private void goBack(ActionEvent event) {
 		try {
-			// Carga la nueva vista
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/MainView.fxml"));
 			Parent mainViewRoot = loader.load();
 
@@ -214,15 +214,20 @@ public class ListProfilesController {
 
 	@FXML
 	public void onStartButtonClicked(ActionEvent event) {
-		try {
-			URL resource = getClass().getResource("/views/GameView.fxml");
-			System.out.println("Resource found? " + (resource != null));
+		if (selectedProfiles.size() < 2) {
+			Alert alert = new Alert(Alert.AlertType.WARNING);
+			alert.setTitle("Jugadores insuficientes");
+			alert.setHeaderText("Se necesitan al menos 2 jugadores");
+			alert.setContentText("Selecciona al menos 2 perfiles para empezar la partida.");
+			alert.showAndWait();
+			return;
+		}
 
+		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/GameView.fxml"));
 			Parent root = loader.load();
 
 			GameController gameController = loader.getController();
-
 			gameController.setProfiles(selectedProfiles);
 
 			Scene gameViewScene = new Scene(root);

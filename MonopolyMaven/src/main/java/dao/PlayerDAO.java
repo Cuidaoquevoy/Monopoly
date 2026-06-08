@@ -5,7 +5,7 @@ import java.util.List;
 import models.Player;
 
 /**
- * @author Ana
+ * @author Víctor
  */
 public interface PlayerDAO {
 
@@ -24,5 +24,8 @@ public interface PlayerDAO {
 
 	/* Read All */
 	public List<Player> getAll();
+
+	/* Read by game — necesario para cargar partida guardada */
+	public List<Player> getPlayersByGame(int gameId);
 
 }

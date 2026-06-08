@@ -7,13 +7,13 @@
 
 <!-- @author Ana -->
 
-<BorderPane xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.MainController">
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.MainController">
    <center>
       <AnchorPane fx:id="mainLayout" maxHeight="600.0" maxWidth="800.0" minHeight="600.0" minWidth="800.0" prefHeight="600.0" prefWidth="800.0" styleClass="main-background" stylesheets="@../css/Home.css" BorderPane.alignment="CENTER">
          <children>
             <ImageView fx:id="imgLogo" fitHeight="236.0" fitWidth="585.0" layoutX="108.0" layoutY="38.0" pickOnBounds="true" preserveRatio="true" />
             <Button fx:id="btnNewGame" layoutX="309.0" layoutY="325.0" mnemonicParsing="false" onAction="#startNewGame" prefHeight="40.0" prefWidth="183.0" styleClass="main-buttons" text="Nueva Partida" />
-            <Button fx:id="btnContinueGame" layoutX="309.0" layoutY="404.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="183.0" styleClass="main-buttons" text="Continuar" />
+            <Button fx:id="btnContinueGame" layoutX="309.0" layoutY="404.0" mnemonicParsing="false" onAction="#continueGame" prefHeight="40.0" prefWidth="183.0" styleClass="main-buttons" text="Continuar" />
             <Button fx:id="btnProfiles" layoutX="309.0" layoutY="482.0" mnemonicParsing="false" onAction="#goToProfile" prefHeight="40.0" prefWidth="183.0" styleClass="main-buttons" text="Perfiles" />
             <Button fx:id="btnExit" layoutX="664.0" layoutY="551.0" mnemonicParsing="false" onAction="#exitMenu" prefHeight="29.0" prefWidth="121.0" styleClass="main-buttons" text="Salir" />
          </children></AnchorPane>
