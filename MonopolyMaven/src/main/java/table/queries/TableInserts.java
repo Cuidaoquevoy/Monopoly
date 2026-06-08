@@ -95,46 +95,65 @@ public class TableInserts {
 			"INSERT INTO Card (id_card, type, action_id) VALUES (64,'COMMUNITY_CHEST', 3);" };
 
 	public static final String[] INSERT_CELLS = {
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(0, 'START', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(1, 'PROPERTY', 1, 1);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(2, 'COMMUNITY_CHEST', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(3, 'PROPERTY', 1, 2);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(4, 'TAX', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(5, 'PROPERTY', 1, 3);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(6, 'PROPERTY', 1, 4);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(7, 'LUCK', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(8, 'PROPERTY', 1, 5);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(9, 'PROPERTY', 1, 6);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(10, 'JAIL', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(11, 'PROPERTY', 1, 7);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(12, 'TAX', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(13, 'PROPERTY', 1, 8);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(14, 'PROPERTY', 1, 9);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(15, 'PROPERTY', 1, 10);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(16, 'PROPERTY', 1, 11);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(0,  'START',          1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(1,  'PROPERTY',        1, 1);", // Rigby
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(2,  'COMMUNITY_CHEST', 1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(3,  'PROPERTY',        1, 2);", // Señor
+																											// Brown
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(4,  'TAX',             1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(5,  'PROPERTY',        1, 23);", // Furgoneta
+																												// del
+																												// Tio
+																												// Ben
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(6,  'PROPERTY',        1, 3);", // Samurai
+																											// Jack
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(7,  'LUCK',            1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(8,  'PROPERTY',        1, 4);", // Perla
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(9,  'PROPERTY',        1, 5);", // Gumball
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(10, 'JAIL',            1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(11, 'PROPERTY',        1, 6);", // Chowder
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(12, 'TAX',             1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(13, 'PROPERTY',        1, 7);", // Steven
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(14, 'PROPERTY',        1, 8);", // Agallas
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(15, 'PROPERTY',        1, 24);", // Furgoneta
+																												// Ed,
+																												// Edd y
+																												// Eddie
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(16, 'PROPERTY',        1, 9);", // Darwin
 			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(17, 'COMMUNITY_CHEST', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(18, 'PROPERTY', 1, 12);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(19, 'PROPERTY', 1, 13);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(20, 'PARKING', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(21, 'PROPERTY', 1, 14);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(22, 'LUCK', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(23, 'PROPERTY', 1, 15);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(24, 'PROPERTY', 1, 16);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(25, 'PROPERTY', 1, 17);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(26, 'PROPERTY', 1, 18);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(27, 'PROPERTY', 1, 19);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(28, 'TAX', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(29, 'PROPERTY', 1, 20);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(30, 'JAIL', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(31, 'PROPERTY', 1, 21);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(32, 'PROPERTY', 1, 22);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(18, 'PROPERTY',        1, 10);", // Comadreja
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(19, 'PROPERTY',        1, 11);", // Dexter
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(20, 'PARKING',         1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(21, 'PROPERTY',        1, 12);", // Aku
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(22, 'LUCK',            1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(23, 'PROPERTY',        1, 13);", // Red Guy
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(24, 'PROPERTY',        1, 14);", // Cuatrobrazos
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(25, 'PROPERTY',        1, 25);", // Portal
+																												// Interdimensional
+																												// (Samurai
+																												// Jack)
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(26, 'PROPERTY',        1, 15);", // Johnny
+																												// Bravo
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(27, 'PROPERTY',        1, 16);", // Muriel
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(28, 'TAX',             1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(29, 'PROPERTY',        1, 17);", // Mandy
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(30, 'JAIL',            1, null);", // Ve a
+																												// la
+																												// cárcel
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(31, 'PROPERTY',        1, 18);", // Cactus
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(32, 'PROPERTY',        1, 19);", // Ben 10
 			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(33, 'COMMUNITY_CHEST', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(34, 'PROPERTY', 1, 23);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(35, 'PROPERTY', 1, 24);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(36, 'LUCK', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(37, 'PROPERTY', 1, 25);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(38, 'TAX', 1, null);",
-			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(39, 'PROPERTY', 1, 26);" };
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(34, 'PROPERTY',        1, 20);", // Ed
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(35, 'PROPERTY',        1, 26);", // Carrito
+																												// Golf
+																												// Mordecai
+																												// y
+																												// Rigby
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(36, 'LUCK',            1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(37, 'PROPERTY',        1, 21);", // Mordecai
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(38, 'TAX',             1, null);",
+			"INSERT INTO Cell (id_cell, type, board_id, property_id) VALUES(39, 'PROPERTY',        1, 22);" // Finn
+	};
 
 	public static final String[] INSERT_PROFILES = {
 			"INSERT INTO Profile (nickname, image) VALUES('Player 1', 'images/profile_photos/finn.jpg');",

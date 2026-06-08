@@ -112,6 +112,7 @@ public class GameController {
 	private int currentProfileIndex = 0;
 	private int turnIndex = 0;
 	private boolean faseInicial = true;
+	private boolean esTurnoDoble = false;
 	private List<Player> orderTurn = new ArrayList<Player>();
 	private List<Player> allPlayers = new ArrayList<Player>();
 	private List<Profile> selectedProfiles = new ArrayList<Profile>();
@@ -1025,13 +1026,10 @@ public class GameController {
 			return;
 		}
 
-		if (dado1 == dado2) {
-			System.out.println(actualPlayer.getProfile().getNickname() + " ha sacado dobles y lanza de nuevo.");
-			mostrarPanelTurnoJugador(actualPlayer.getProfile());
-			return;
-		}
+		// Guardar si ha sacado dobles para que los botones de turno lo tengan en cuenta
+		esTurnoDoble = (dado1 == dado2);
 
-		// ← USA la celda ya actualizada por moverFichaJugador(), no recalcules
+		// Procesar la celda en la que ha caído (dobles o no)
 		Cell newCell = actualPlayer.getCell();
 		System.out.println("Jugador en celda: " + newCell.getIdCell() + " tipo: " + newCell.getType());
 
@@ -1068,6 +1066,22 @@ public class GameController {
 
 		playerDAO.updatePlayer(actualPlayer);
 		actualizarResaltadoJugador(actualPlayer);
+
+	}
+
+	/** Avanza al siguiente turno o relanza si hay dobles */
+	private void siguienteTurnoORelanzar(Player player) {
+		if (esTurnoDoble) {
+			esTurnoDoble = false;
+			System.out.println(player.getProfile().getNickname() + " ha sacado dobles y lanza de nuevo.");
+			mostrarPanelTurnoJugador(player.getProfile());
+		} else {
+			turnIndex++;
+			if (turnIndex >= orderTurn.size()) {
+				turnIndex = 0;
+			}
+			startTurn();
+		}
 	}
 
 	/* ── Propiedades ────────────────────────────────────────────────────────── */
@@ -1116,19 +1130,16 @@ public class GameController {
 		btnBuy.setFont(Font.font("Comic Sans MS", 14));
 		btnBuy.setLayoutX(34);
 		btnBuy.setLayoutY(320);
-		btnBuy.setOnAction(e -> comprarPropiedad(property, player));
+		btnBuy.setOnAction(e -> {
+			comprarPropiedad(property, player);
+			siguienteTurnoORelanzar(player);
+		});
 
 		Button btnCancel = new Button("Terminar turno");
 		btnCancel.setFont(Font.font("Comic Sans MS", 14));
 		btnCancel.setLayoutX(210);
 		btnCancel.setLayoutY(320);
-		btnCancel.setOnAction(e -> {
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
-		});
+		btnCancel.setOnAction(e -> siguienteTurnoORelanzar(player));
 
 		centerPane.getChildren().addAll(imgProperty, btnBuy, btnCancel);
 	}
@@ -1152,11 +1163,7 @@ public class GameController {
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
 		btnTerminarTurno.setOnAction(e -> {
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
+			siguienteTurnoORelanzar(orderTurn.get(turnIndex));
 		});
 
 		centerPane.getChildren().addAll(lblInfo, btnTerminarTurno);
@@ -1244,11 +1251,7 @@ public class GameController {
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(315);
 		btnTerminarTurno.setOnAction(e -> {
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
+			siguienteTurnoORelanzar(orderTurn.get(turnIndex));
 		});
 
 		centerPane.getChildren().addAll(imgProperty, lblEpisodios, hbEpisodios, lblTemporadas, hbTemporada,
@@ -1486,6 +1489,26 @@ public class GameController {
 		lblAction.setWrapText(true);
 
 		player.setJailTurnsLeft(3);
+
+		// Mover la ficha visualmente a la casilla de cárcel (celda 10)
+		Cell jailCell = cellDAO.findCellById(10);
+		player.setCell(jailCell);
+		Point2D coordJail = null;
+		for (Map.Entry<Point2D, Cell> entry : mapaCeldaPorCoordenada.entrySet()) {
+			if (entry.getValue().getIdCell() == 10) {
+				coordJail = entry.getKey();
+				break;
+			}
+		}
+		if (coordJail != null) {
+			HBox hboxJail = hboxPorCoordenada.get(coordJail);
+			javafx.scene.Parent padre = player.getImgToken().getParent();
+			if (padre instanceof javafx.scene.layout.Pane) {
+				((javafx.scene.layout.Pane) padre).getChildren().remove(player.getImgToken());
+			}
+			hboxJail.getChildren().add(player.getImgToken());
+		}
+
 		centerPane.getChildren().clear();
 
 		Label lblInfo = new Label("¡Oh no, has caído en la cárcel!");
@@ -1505,11 +1528,7 @@ public class GameController {
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
 		btnTerminarTurno.setOnAction(e -> {
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
+			siguienteTurnoORelanzar(orderTurn.get(turnIndex));
 		});
 
 		centerPane.getChildren().addAll(lblInfo, imgCarcel, btnTerminarTurno);
@@ -1538,11 +1557,7 @@ public class GameController {
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
 		btnTerminarTurno.setOnAction(e -> {
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
+			siguienteTurnoORelanzar(orderTurn.get(turnIndex));
 		});
 
 		centerPane.getChildren().addAll(lblInfo, btnTerminarTurno);
@@ -1577,11 +1592,7 @@ public class GameController {
 		btnTerminarTurno.setLayoutX(129);
 		btnTerminarTurno.setLayoutY(256);
 		btnTerminarTurno.setOnAction(e -> {
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
+			siguienteTurnoORelanzar(orderTurn.get(turnIndex));
 		});
 
 		centerPane.getChildren().addAll(lblInfo, btnTerminarTurno);
@@ -1641,11 +1652,7 @@ public class GameController {
 		btnTerminarTurno.setLayoutY(256);
 		btnTerminarTurno.setOnAction(e -> {
 			executeAction(luckyCard.getAction(), player);
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
+			siguienteTurnoORelanzar(orderTurn.get(turnIndex));
 		});
 
 		centerPane.getChildren().addAll(imgLuck, btnTerminarTurno);
@@ -1705,11 +1712,7 @@ public class GameController {
 		btnTerminarTurno.setLayoutY(256);
 		btnTerminarTurno.setOnAction(e -> {
 			executeAction(chestCard.getAction(), player);
-			turnIndex++;
-			if (turnIndex >= orderTurn.size()) {
-				turnIndex = 0;
-			}
-			startTurn();
+			siguienteTurnoORelanzar(orderTurn.get(turnIndex));
 		});
 
 		centerPane.getChildren().addAll(imgChest, btnTerminarTurno);
